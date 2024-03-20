@@ -26,6 +26,8 @@ class TokenSettings(BaseModel):
 class AppSettings(BaseModel):
     NAME: str = "PhotoShopper"
     VERSION: str = '0.1.0'
+    HOST: str = os.getenv("APP_HOST")
+    PORT: int = int(os.getenv("APP_PORT"))
     ROOT_DIR: str = Path(__file__).parent.parent
     ENV: str = os.getenv("APP_ENV")
     SECRET: str = os.getenv("APP_SECRET")

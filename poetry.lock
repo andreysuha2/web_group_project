@@ -274,6 +274,17 @@ docs = ["Sphinx", "furo"]
 test = ["objgraph", "psutil"]
 
 [[package]]
+name = "h11"
+version = "0.14.0"
+description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "h11-0.14.0-py3-none-any.whl", hash = "sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761"},
+    {file = "h11-0.14.0.tar.gz", hash = "sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c6f0a3b699d"},
+]
+
+[[package]]
 name = "idna"
 version = "3.6"
 description = "Internationalized Domain Names in Applications (IDNA)"
@@ -755,24 +766,24 @@ files = [
 ]
 
 [[package]]
-name = "unicorn"
-version = "2.0.1.post1"
-description = "Unicorn CPU emulator engine"
+name = "uvicorn"
+version = "0.29.0"
+description = "The lightning-fast ASGI server."
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
 files = [
-    {file = "unicorn-2.0.1.post1-py2.py3-none-macosx_10_15_x86_64.whl", hash = "sha256:2d3eb3ec7eabbc4e66b4d853e11b27c426ce03072860c756139ed2191588751c"},
-    {file = "unicorn-2.0.1.post1-py2.py3-none-manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:2b3eba8848f3cfd43ed5f3128f01880ecc4e73e6b36c1e5e951177db0fb9c03b"},
-    {file = "unicorn-2.0.1.post1-py2.py3-none-manylinux1_i686.whl", hash = "sha256:4cf11d4883160dd3c4967bb3187dd886cdca4422884b315ace436af6047aae0d"},
-    {file = "unicorn-2.0.1.post1-py2.py3-none-manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:45be711d2bc8b82d07f2e0bdde128f3e9408c42978a3ed5edf709bce5350fcdf"},
-    {file = "unicorn-2.0.1.post1-py2.py3-none-manylinux1_x86_64.whl", hash = "sha256:5ed85a0b7bbfa47dd029272e071c814f21e9dacc2eefd63521f4d638ff1d6db9"},
-    {file = "unicorn-2.0.1.post1-py2.py3-none-manylinux2014_aarch64.whl", hash = "sha256:0bd05f9ae6b86b1326e6c3c1d1f3e51264b479cd1961388fd0da0ae674ec0195"},
-    {file = "unicorn-2.0.1.post1-py2.py3-none-win32.whl", hash = "sha256:9f0e3bbe207a6d2ddd3dff528bf3b2251c8e11d0fb4bab2338dff01475f6f41b"},
-    {file = "unicorn-2.0.1.post1-py2.py3-none-win_amd64.whl", hash = "sha256:7145fe448d17b2377b18e08e0521749cf0f94b9d3fe8b67c032bb4c932a21c29"},
-    {file = "unicorn-2.0.1.post1.tar.gz", hash = "sha256:7fc69523eb83b4c8abc7cb4410ca21875e066c34b7afe998f59481e830d28e56"},
+    {file = "uvicorn-0.29.0-py3-none-any.whl", hash = "sha256:2c2aac7ff4f4365c206fd773a39bf4ebd1047c238f8b8268ad996829323473de"},
+    {file = "uvicorn-0.29.0.tar.gz", hash = "sha256:6a69214c0b6a087462412670b3ef21224fa48cae0e452b5883e8e8bdfdd11dd0"},
 ]
+
+[package.dependencies]
+click = ">=7.0"
+h11 = ">=0.8"
+
+[package.extras]
+standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)", "pyyaml (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "watchfiles (>=0.13)", "websockets (>=10.4)"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "1a7ef32abe48db18f7d9f37d712fc09d9b584193c2a1d5fbd142e32f9638a935"
+content-hash = "cb682316f0e594ed5fd16ac39abeb25ac29f453198223acd9fb9b28a04ecee07"
