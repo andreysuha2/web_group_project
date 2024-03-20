@@ -24,8 +24,11 @@ class TokenSettings(BaseModel):
     REFRESH_EXPIRED: int = 7 * 1440
 
 class AppSettings(BaseModel):
+    NAME: str = "PhotoShopper"
+    VERSION: str = '0.1.0'
     ROOT_DIR: str = Path(__file__).parent.parent
-    SECRET: str = os.getenv("APP_SECRET_KEY")
+    ENV: str = os.getenv("APP_ENV")
+    SECRET: str = os.getenv("APP_SECRET")
     BASE_URL_PREFIX: str = '/api'
 
     @property
