@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from pathlib import Path
 import os
 
 load_dotenv(override=True)
@@ -23,6 +24,7 @@ class TokenSettings(BaseModel):
     REFRESH_EXPIRED: int = 7 * 1440
 
 class AppSettings(BaseModel):
+    ROOT_DIR: str = Path(__file__).parent.parent
     SECRET: str = os.getenv("APP_SECRET_KEY")
     BASE_URL_PREFIX: str = '/api'
 
