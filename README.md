@@ -1,0 +1,1 @@
+1. Для створення файлу .env виконати команду `python ./app/cli.py initenv`
