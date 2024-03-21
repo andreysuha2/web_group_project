@@ -1,7 +1,9 @@
 from app.settings import settings
+from fastapi import Depends
 from sqlalchemy import create_engine, DateTime
 from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase, Mapped, mapped_column
 from datetime import datetime, UTC
+from typing import Annotated
 
 engine = create_engine(settings.db.CONNECTION_STRING)
 
@@ -17,6 +19,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+DBConnectionDep = Annotated[Session, Depends(get_db)]
 
 # Helpers
 class TimestampsMixin():
