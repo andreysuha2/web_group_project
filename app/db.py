@@ -1,6 +1,7 @@
 from app.settings import settings
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase
+from sqlalchemy import create_engine, DateTime
+from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase, Mapped, mapped_column
+from datetime import datetime, UTC
 
 engine = create_engine(settings.db.CONNECTION_STRING)
 
@@ -16,3 +17,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# Helpers
+class TimestampsMixin():
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.now(UTC))
+    update_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=lambda: datetime.now(UTC), nullable=True)

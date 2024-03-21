@@ -32,10 +32,17 @@ class AppSettings(BaseModel):
     ENV: str = os.getenv("APP_ENV")
     SECRET: str = os.getenv("APP_SECRET")
     BASE_URL_PREFIX: str = '/api'
+    
+    @property
+    def STORAGE_FOLDER(self) -> str:
+        return f"{self.ROOT_DIR}/app/files-storage"
 
     @property
     def LOGIN_URL(self) -> str:
         return f"{self.BASE_URL_PREFIX}/session"
+    
+class PhotoSettings(BaseModel):
+    MAX_TAGS: int = 5
 
 class Settings(BaseModel):
     app: AppSettings = AppSettings()

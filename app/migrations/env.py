@@ -5,6 +5,9 @@ from sqlalchemy import pool
 
 from app.db import Base
 from app.settings import settings
+import comments.models
+import photos.models
+import users.models
 
 from alembic import context
 
