@@ -3,6 +3,7 @@ from app.db import DBConnectionDep
 from typing import Annotated, List
 from comments import schemas
 from comments.controllers import CommentsController
+from app.services.auth import auth, AuthDep
 
 CommentsControllerDep = Annotated[CommentsController, Depends(CommentsController)]
 

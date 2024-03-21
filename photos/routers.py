@@ -3,6 +3,7 @@ from app.db import DBConnectionDep
 from typing import Annotated, List
 from photos import schemas
 from photos.controllers import PhotosContoller
+from app.services.auth import auth, AuthDep
 
 PhotoContollerDep = Annotated[PhotosContoller, Depends(PhotosContoller)]
 

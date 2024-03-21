@@ -3,6 +3,7 @@ from app.db import DBConnectionDep
 from typing import Annotated, List
 from users import schemas
 from users.controllers import UsersController, SessionController
+from app.services.auth import auth, AuthDep
 
 UsersControllerDep = Annotated[UsersController, Depends(UsersController)]
 SessionControllerDep = Annotated[SessionController, Depends(SessionController)]

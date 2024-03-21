@@ -1,7 +1,8 @@
 from app.db import Base, TimestampsMixin
 from enum import Enum
-from sqlalchemy import Integer, String, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Integer, String, ForeignKey, Enum as SQLEnum, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime
 from typing import List, TYPE_CHECKING
 if TYPE_CHECKING:
     from photos.models import Photo
@@ -27,5 +28,6 @@ class Token(Base):
     __tablename__ = "tokens"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     token: Mapped[int] = mapped_column(Integer, primary_key=True)
+    expired_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     user: Mapped["User"] = relationship(back_populates="tokens")
