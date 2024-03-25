@@ -1,5 +1,5 @@
-# from libgravatar import Gravatar
 from sqlalchemy import select
+from libgravatar import Gravatar
 
 from typing import List, Optional
 import users
@@ -29,8 +29,8 @@ class SessionController:
         avatar = None
         try:
             pass
-            # g = Gravatar(body.email)
-            # avatar = g.get_image()
+            g = Gravatar(body.email)
+            avatar = g.get_image()
         except Exception as e:
             print("Avatar exception:", e)
         user = self.base_model(**body.model_dump(), avatar=avatar)
@@ -49,8 +49,9 @@ class UsersController:
 
 
     def get_users(self, db: DBConnectionDep, offset: int = 0, limit: int = 100) -> Optional[List[User]]:
-        stmt = select(User).offset(offset).limit(limit)
-        users = db.execute(stmt)
-        return users.scalars().all()
-        
+        # stmt = select(User).offset(offset).limit(limit)
+        # users = db.execute(stmt)
+        # return users.scalars().all()
+        return db.query(self.base_model).offset(offset).limit(limit).all()
+
 

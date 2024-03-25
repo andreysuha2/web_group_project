@@ -8,8 +8,8 @@ from app import settings
 from app.db import DBConnectionDep
 
 from users.controllers import SessionController, UsersController
-# import cloudinary
-# import cloudinary.uploader
+import cloudinary
+import cloudinary.uploader
 
 
 security = HTTPBearer()
@@ -27,7 +27,7 @@ async def users_list(controller: UsersControllerDep, db: DBConnectionDep, offset
 
 
 
-@session_router.post('/signup', response_model=schemas.UserResponse|None)
+@user_router.post('/signup', response_model=schemas.UserResponse|None)
 async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks: BackgroundTasks, request: Request, body: schemas.UserCreationModel):
     exist_user = await controller.get_user(email=body.email, db=db)
     if exist_user:
@@ -37,26 +37,73 @@ async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks
     # bg_tasks.add_task(ConfirmationEmail(email=user.email), username=user.username, host=request.base_url)
     return user
 
-@session_router.post('/login', response_model=schemas.UserResponse|None)
-async def session_create(db: DBConnectionDep, body: OAuth2PasswordRequestForm = Depends()):
+# @session_router.post('/login', response_model=schemas.UserResponse|None)
+# async def session_create(db: DBConnectionDep, body: OAuth2PasswordRequestForm = Depends()):
+#     return await auth.authenticate(body, db)
+
+
+# @session_router.get('/refresh_token', response_model=schemas.UserResponse|None)
+# async def session_read(db: DBConnectionDep, body: OAuth2PasswordRequestForm = Depends(), credentials: HTTPAuthorizationCredentials = Security(security)):
+#     return auth(db, body)
+
+
+# @session_router.put('/', response_model=schemas.UserResponse)
+# async def session_update(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
+#     return await auth.refresh(db, credentials)
+
+
+# @session_router.delete('/')
+# async def session_delete(credentials: HTTPAuthorizationCredentials = Security(security) ):
+#     return await auth.logout()
+
+
+@user_router.post('/login', response_model=schemas.TokenModel)
+async def login(db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
     return await auth.authenticate(body, db)
 
 
-@session_router.get('/refresh_token', response_model=schemas.UserResponse|None)
-async def session_read(db: DBConnectionDep, body: OAuth2PasswordRequestForm = Depends(), credentials: HTTPAuthorizationCredentials = Security(security)):
-    return auth(db, body)
+@user_router.get('/confirmed_email/{token}')
+async def confirm_email(token: str, db: DBConnectionDep, controller: UsersControllerDep):
+    email = await auth.token.decode_email_confirm(token)
+    user = await controller.get_user(email, db)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verefication error")
+    if user.confirmed_at:
+        return {"message": "Your email is already confirmed"}
+    await controller.comfirm_email(email, db)
+    return { "message": "Email confirmed!" }
 
+@user_router.post('/request_email')
+async def request_email(body: schemas.RequestEmail, bg_tasks: BackgroundTasks, request: Request, db: DBConnectionDep, controller: UsersControllerDep):
+    user = await controller.get_user(body.email, db)
+    if user.confirmed_at:
+        return {"message": "Your email is already confirmed"}
+    if user:
+        pass
+        # bg_tasks.add_task(ConfirmationEmail(body.email), username=user.username, host=request.base_url)
+    return {"message": "Check your email for confirmation"}
 
-@session_router.put('/', response_model=schemas.UserResponse)
-async def session_update(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
-    return await auth.refresh(db, credentials)
+@user_router.get('/refresh_token', response_model=schemas.TokenModel)
+async def refresh_token(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
+    return await auth.refresh(credentials.credentials, db)
 
+@user_router.get("/", response_model=schemas.UserResponse)
+async def read_user(user: AuthDep):
+    return user
 
-@session_router.delete('/')
-async def session_delete(credentials: HTTPAuthorizationCredentials = Security(security) ):
-    return await auth.logout()
-
-
+@user_router.patch("/avatar", response_model=schemas.UserResponse)
+async def update_user_avatar(db: DBConnectionDep, controller: UsersControllerDep, current_user: AuthDep, file: UploadFile = File()):
+    cloudinary.config(
+        cloud_name=settings.CLOUDINARY_NAME,
+        api_key=settings.CLOUDINARY_KEY,
+        api_secret=settings.CLOUDINARY_SECRET,
+        security=True
+    )
+    public_id = f"ContactsApp/{current_user.username}"
+    r = cloudinary.uploader.upload(file.file, public_id=public_id)
+    src_url = cloudinary.CloudinaryImage(public_id).build_url(width=250, height=250, crop='fill', version=r.get('version'))
+    user = await controller.update_avatar(current_user, src_url, db)
+    return user
 
 
 
