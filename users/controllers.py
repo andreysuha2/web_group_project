@@ -1,3 +1,5 @@
+from users.models import User
+
 class UsersController:
     pass
 
