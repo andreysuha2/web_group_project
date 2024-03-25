@@ -19,6 +19,8 @@ faker = "^24.3.0"
 python-dotenv = "^1.0.1"
 typer = "^0.9.0"
 uvicorn = {extras = ["extras"], version = "^0.29.0"}
+fastapi-limiter = "^0.1.6"
+python-multipart = "^0.0.9"
 
 
 [build-system]

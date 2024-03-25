@@ -20,7 +20,7 @@ class DBSettings(BaseModel):
 class TokenSettings(BaseModel):
     ALGORITHM: str = "HS256"
     DEFAULT_EXPIRED: int = 120
-    ACCESS_EXPIRED: int = 15
+    ACCESS_EXPIRED: int = 115
     REFRESH_EXPIRED: int = 7 * 1440
 
 class AppSettings(BaseModel):

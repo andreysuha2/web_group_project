@@ -23,6 +23,7 @@ class User(Base, TimestampsMixin):
     tokens: Mapped[List["Token"]] = relationship(back_populates="user")
     photos: Mapped[List["Photo"]] = relationship(back_populates="user")
     comments: Mapped[List["Comment"]] = relationship(back_populates="user")
+    
 
 class Token(Base):
     __tablename__ = "tokens"
