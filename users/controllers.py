@@ -1,9 +1,10 @@
 from sqlalchemy import select
-from libgravatar import Gravatar
+# from libgravatar import Gravatar
 
 from typing import List, Optional
-import users
+# import users
 from users.models import User
+from users.models import UserRoles
 from sqlalchemy.orm import Session
 from users import schemas
 from datetime import datetime
@@ -26,14 +27,7 @@ class SessionController:
         db.commit()
     
     async def create(self, body: schemas.UserCreationModel, db: Session) -> base_model:
-        avatar = None
-        try:
-            pass
-            g = Gravatar(body.email)
-            avatar = g.get_image()
-        except Exception as e:
-            print("Avatar exception:", e)
-        user = self.base_model(**body.model_dump(), avatar=avatar)
+        user = self.base_model(**body.model_dump()) 
         db.add(user)
         db.commit()
         db.refresh(user)

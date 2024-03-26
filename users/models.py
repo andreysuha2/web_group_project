@@ -9,17 +9,18 @@ if TYPE_CHECKING:
     from comments.models import Comment
 
 class UserRoles(Enum):
-    ADMIN="admin"
-    MODER="moder"
-    USER="user"
+    ADMIN:str = "admin"
+    MODER:str = "moder"
+    USER:str = "user"
 
 class User(Base, TimestampsMixin):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String(50), unique=True)
     username: Mapped[str] = mapped_column(String(50), unique=True)
-    password: Mapped[str] = mapped_column(String)
-    role: Mapped[UserRoles] = mapped_column(SQLEnum(name="user_role_enum"))
+    password: Mapped[str] = mapped_column(String(200))
+    role: Mapped[UserRoles] = mapped_column(SQLEnum(name="user_role_enum"), default=UserRoles.USER)
+    # role: Mapped[SQLEnum] = mapped_column("role", SQLEnum(UserRoles), default=UserRoles.USER, nullable=True)
     tokens: Mapped[List["Token"]] = relationship(back_populates="user")
     photos: Mapped[List["Photo"]] = relationship(back_populates="user")
     comments: Mapped[List["Comment"]] = relationship(back_populates="user")

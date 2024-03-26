@@ -1,12 +1,12 @@
-from fastapi import APIRouter, status, Depends, HTTPException, Security, BackgroundTasks, Request, UploadFile, File
+from fastapi import APIRouter, status, Depends, HTTPException, Security, BackgroundTasks, Request, UploadFile, File, Response
 from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
 from app.services.auth import auth, AuthDep
+from fastapi.responses import FileResponse
 from users import schemas
 from users.models import User
 from typing import Annotated, List
 from app import settings
 from app.db import DBConnectionDep
-
 from users.controllers import SessionController, UsersController
 import cloudinary
 import cloudinary.uploader
@@ -27,7 +27,7 @@ async def users_list(controller: UsersControllerDep, db: DBConnectionDep, offset
 
 
 
-@user_router.post('/signup', response_model=schemas.UserResponse|None)
+@session_router.post('/signup', response_model=schemas.UserResponse|None)
 async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks: BackgroundTasks, request: Request, body: schemas.UserCreationModel):
     exist_user = await controller.get_user(email=body.email, db=db)
     if exist_user:
@@ -57,12 +57,12 @@ async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks
 #     return await auth.logout()
 
 
-@user_router.post('/login', response_model=schemas.TokenModel)
+@session_router.post('/login', response_model=schemas.TokenModel)
 async def login(db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
     return await auth.authenticate(body, db)
 
 
-@user_router.get('/confirmed_email/{token}')
+@session_router.get('/confirmed_email/{token}')
 async def confirm_email(token: str, db: DBConnectionDep, controller: UsersControllerDep):
     email = await auth.token.decode_email_confirm(token)
     user = await controller.get_user(email, db)
@@ -73,7 +73,7 @@ async def confirm_email(token: str, db: DBConnectionDep, controller: UsersContro
     await controller.comfirm_email(email, db)
     return { "message": "Email confirmed!" }
 
-@user_router.post('/request_email')
+@session_router.post('/request_email')
 async def request_email(body: schemas.RequestEmail, bg_tasks: BackgroundTasks, request: Request, db: DBConnectionDep, controller: UsersControllerDep):
     user = await controller.get_user(body.email, db)
     if user.confirmed_at:
@@ -83,7 +83,7 @@ async def request_email(body: schemas.RequestEmail, bg_tasks: BackgroundTasks, r
         # bg_tasks.add_task(ConfirmationEmail(body.email), username=user.username, host=request.base_url)
     return {"message": "Check your email for confirmation"}
 
-@user_router.get('/refresh_token', response_model=schemas.TokenModel)
+@session_router.get('/refresh_token', response_model=schemas.TokenModel)
 async def refresh_token(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
     return await auth.refresh(credentials.credentials, db)
 
@@ -106,6 +106,13 @@ async def update_user_avatar(db: DBConnectionDep, controller: UsersControllerDep
     return user
 
 
+
+# @user_router.get('/{username}')
+# async def request_email(username: str, response: Response, db: DBConnectionDep):
+#     print('--------------------------------')
+#     print(f'{username} зберігаємо що він відкрив email в БД')
+#     print('--------------------------------')
+#     return FileResponse("src/static/open_check.png", media_type="image/png", content_disposition_type="inline")
 
 
 
