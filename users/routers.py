@@ -26,17 +26,6 @@ async def users_list(controller: UsersControllerDep, db: DBConnectionDep, offset
 
 
 
-
-@session_router.post('/signup', response_model=schemas.UserResponse|None)
-async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks: BackgroundTasks, request: Request, body: schemas.UserCreationModel):
-    exist_user = await controller.get_user(email=body.email, db=db)
-    if exist_user:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='User already exist')
-    body.password = auth.password.hash(body.password)
-    user = await controller.create(body, db)
-    # bg_tasks.add_task(ConfirmationEmail(email=user.email), username=user.username, host=request.base_url)
-    return user
-
 # @session_router.post('/login', response_model=schemas.UserResponse|None)
 # async def session_create(db: DBConnectionDep, body: OAuth2PasswordRequestForm = Depends()):
 #     return await auth.authenticate(body, db)
@@ -57,9 +46,37 @@ async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks
 #     return await auth.logout()
 
 
-@session_router.post('/login', response_model=schemas.TokenModel)
-async def login(db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
-    return await auth.authenticate(body, db)
+@session_router.post('/signup', response_model=schemas.UserResponse|None)
+async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks: BackgroundTasks, request: Request, body: schemas.UserCreationModel):
+    exist_user = await controller.get_user(email=body.email, db=db)
+    if exist_user:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='User already exist')
+    body.password = auth.password.hash(body.password)
+    user = await controller.create(body, db)
+    # bg_tasks.add_task(ConfirmationEmail(email=user.email), username=user.username, host=request.base_url)
+    return user
+
+
+@session_router.post('/login', response_model=schemas.TokenPairModel)
+async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
+    result =  await auth.authenticate(body, db)
+    return result
+    
+
+
+# @session_router.post('/login', response_model=schemas.TokenModel)
+# async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
+#     user = await controller.get_user(email=body.email, db=db)
+#     if user is None:
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email")
+#     if not auth_service.verify_password(body.password, user.password):
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
+#     # Generate JWT
+#     access_token = await auth_service.create_access_token(data={"sub": user.email, "test": "Сергій Багмет"})
+#     refresh_token = await auth_service.create_refresh_token(data={"sub": user.email})
+#     await repositories_users.update_token(user, refresh_token, db)
+#     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+
 
 
 @session_router.get('/confirmed_email/{token}')
@@ -83,15 +100,16 @@ async def request_email(body: schemas.RequestEmail, bg_tasks: BackgroundTasks, r
         # bg_tasks.add_task(ConfirmationEmail(body.email), username=user.username, host=request.base_url)
     return {"message": "Check your email for confirmation"}
 
-@session_router.get('/refresh_token', response_model=schemas.TokenModel)
+@session_router.get('/refresh_token', response_model=schemas.TokenPairModel)
 async def refresh_token(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
     return await auth.refresh(credentials.credentials, db)
 
 @user_router.get("/", response_model=schemas.UserResponse)
 async def read_user(user: AuthDep):
     return user
+    
 
-@user_router.patch("/avatar", response_model=schemas.UserResponse)
+@user_router.patch("/role", response_model=schemas.UserResponse)
 async def update_user_avatar(db: DBConnectionDep, controller: UsersControllerDep, current_user: AuthDep, file: UploadFile = File()):
     cloudinary.config(
         cloud_name=settings.CLOUDINARY_NAME,
@@ -106,14 +124,12 @@ async def update_user_avatar(db: DBConnectionDep, controller: UsersControllerDep
     return user
 
 
-
 # @user_router.get('/{username}')
 # async def request_email(username: str, response: Response, db: DBConnectionDep):
 #     print('--------------------------------')
 #     print(f'{username} зберігаємо що він відкрив email в БД')
 #     print('--------------------------------')
 #     return FileResponse("src/static/open_check.png", media_type="image/png", content_disposition_type="inline")
-
 
 
 

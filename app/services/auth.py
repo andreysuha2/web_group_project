@@ -94,6 +94,7 @@ class Auth:
         return True
     
     async def refresh(self, refres_token_str: str, db: Session) -> schemas.TokenPairModel:
+        print('=======================================', refres_token_str)
         payload = await self.token.decode_refresh(refres_token_str)
         refres_token = db.query(self.TokensModel).filter(
             self.TokensModel.refresh==refres_token_str
@@ -122,9 +123,9 @@ class Auth:
         user.tokens.append(token)
         db.commit()
         return { 
-            "access": { "token": access_token["token"], "expired_at": access_token["expired_at"] }, 
-            "refresh": { "token": refresh_token["token"], "expired_at": refresh_token["expired_at"] }, 
-            "type": "bearer"
+            "access_token": { "token": access_token["token"], "expired_at": access_token["expired_at"] }, 
+            "refresh_token": { "token": refresh_token["token"], "expired_at": refresh_token["expired_at"] }, 
+            "token_type": "bearer"
         }
         
     async def __get_user(self, username: str, db: Session) -> UserModel | None:

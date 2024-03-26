@@ -1,7 +1,6 @@
 from pydantic import Field, BaseModel, EmailStr
 from datetime import datetime
-# from contacts.schemas import ContactResponse
-from typing import List
+from typing import List, Dict
 
 class UserCreationModel(BaseModel):
     username: str = Field(min_length=5, max_length=20, example="username")
@@ -11,7 +10,6 @@ class UserCreationModel(BaseModel):
 class UserModel(BaseModel):
     username: str
     email: EmailStr
-    # avatar: str
     created_at: datetime
 
 class UserResponse(UserModel):
@@ -21,15 +19,14 @@ class UserResponse(UserModel):
         from_attributes = True
 
 class TokenPairModel(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = 'bearer'
+    access_token: dict
+    refresh_token: dict
+    token_type: str 
 
 
 class TokenModel(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = 'bearer'
+    access_token: dict
+    expired_at: datetime
 
 class RequestEmail(BaseModel):
     email: EmailStr

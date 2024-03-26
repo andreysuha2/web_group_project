@@ -15,12 +15,11 @@ class UserRoles(Enum):
 
 class User(Base, TimestampsMixin):
     __tablename__ = "users"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     email: Mapped[str] = mapped_column(String(50), unique=True)
     username: Mapped[str] = mapped_column(String(50), unique=True)
     password: Mapped[str] = mapped_column(String(200))
     # role: Mapped[UserRoles] = mapped_column(SQLEnum(name="user_role_enum"), default=UserRoles.USER.value)
-    # role: Mapped[UserRoles] = mapped_column(SQLEnum(name="user_role_enum"), default="user")
     role = Column(SQLEnum(UserRoles), default=UserRoles.USER)
     tokens: Mapped[List["Token"]] = relationship(back_populates="user")
     photos: Mapped[List["Photo"]] = relationship(back_populates="user")
@@ -28,8 +27,8 @@ class User(Base, TimestampsMixin):
 
 class Token(Base):
     __tablename__ = "tokens"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    token: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    token: Mapped[str] = mapped_column(String, unique=True)
     expired_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     user: Mapped["User"] = relationship(back_populates="tokens")

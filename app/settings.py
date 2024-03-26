@@ -19,8 +19,8 @@ class DBSettings(BaseModel):
     
 class TokenSettings(BaseModel):
     ALGORITHM: str = "HS256"
-    DEFAULT_EXPIRED: int = 120
-    ACCESS_EXPIRED: int = 15
+    DEFAULT_EXPIRED: int = 1200
+    ACCESS_EXPIRED: int = 1500
     REFRESH_EXPIRED: int = 7 * 1440
 
 class AppSettings(BaseModel):
@@ -39,7 +39,8 @@ class AppSettings(BaseModel):
 
     @property
     def LOGIN_URL(self) -> str:
-        return f"{self.BASE_URL_PREFIX}/session"
+        # return f"{self.BASE_URL_PREFIX}/session"
+        return f"{self.BASE_URL_PREFIX}/session/login"
     
 class PhotoSettings(BaseModel):
     MAX_TAGS: int = 5
