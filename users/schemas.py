@@ -11,7 +11,7 @@ class UserCreationModel(BaseModel):
 class UserModel(BaseModel):
     username: str
     email: EmailStr
-    avatar: str
+    # avatar: str
     created_at: datetime
 
 class UserResponse(UserModel):

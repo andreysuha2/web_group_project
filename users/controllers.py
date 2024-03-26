@@ -28,6 +28,7 @@ class SessionController:
     
     async def create(self, body: schemas.UserCreationModel, db: Session) -> base_model:
         user = self.base_model(**body.model_dump()) 
+        # print("========================================" , user.email, user.username)
         db.add(user)
         db.commit()
         db.refresh(user)

@@ -32,7 +32,7 @@ async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks
     exist_user = await controller.get_user(email=body.email, db=db)
     if exist_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='User already exist')
-    # body.password = auth.password.hash(body.password)
+    body.password = auth.password.hash(body.password)
     user = await controller.create(body, db)
     # bg_tasks.add_task(ConfirmationEmail(email=user.email), username=user.username, host=request.base_url)
     return user

@@ -1,6 +1,6 @@
 from app.db import Base, TimestampsMixin
 from enum import Enum
-from sqlalchemy import Integer, String, ForeignKey, Enum as SQLEnum, DateTime
+from sqlalchemy import Integer, String, ForeignKey, Enum as SQLEnum, DateTime, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import List, TYPE_CHECKING
@@ -9,9 +9,9 @@ if TYPE_CHECKING:
     from comments.models import Comment
 
 class UserRoles(Enum):
-    ADMIN:str = "admin"
-    MODER:str = "moder"
-    USER:str = "user"
+    ADMIN = "admin"
+    MODER = "moder"
+    USER = "user"
 
 class User(Base, TimestampsMixin):
     __tablename__ = "users"
@@ -19,8 +19,9 @@ class User(Base, TimestampsMixin):
     email: Mapped[str] = mapped_column(String(50), unique=True)
     username: Mapped[str] = mapped_column(String(50), unique=True)
     password: Mapped[str] = mapped_column(String(200))
-    role: Mapped[UserRoles] = mapped_column(SQLEnum(name="user_role_enum"), default=UserRoles.USER)
-    # role: Mapped[SQLEnum] = mapped_column("role", SQLEnum(UserRoles), default=UserRoles.USER, nullable=True)
+    # role: Mapped[UserRoles] = mapped_column(SQLEnum(name="user_role_enum"), default=UserRoles.USER.value)
+    # role: Mapped[UserRoles] = mapped_column(SQLEnum(name="user_role_enum"), default="user")
+    role = Column(SQLEnum(UserRoles), default=UserRoles.USER)
     tokens: Mapped[List["Token"]] = relationship(back_populates="user")
     photos: Mapped[List["Photo"]] = relationship(back_populates="user")
     comments: Mapped[List["Comment"]] = relationship(back_populates="user")
