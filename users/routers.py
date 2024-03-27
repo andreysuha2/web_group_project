@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
-from app.db import DBConnectionDep
+from ..app.db import DBConnectionDep
 from typing import Annotated, List
-from users import schemas
-from users.controllers import UsersController, SessionController
-from app.services.auth import auth, AuthDep
+from ..users import schemas
+from ..users.controllers import UsersController, SessionController
+from ..app.services.auth import auth, AuthDep
 
 UsersControllerDep = Annotated[UsersController, Depends(UsersController)]
 SessionControllerDep = Annotated[SessionController, Depends(SessionController)]
