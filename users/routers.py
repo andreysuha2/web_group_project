@@ -23,23 +23,6 @@ async def users_list(controller: UsersControllerDep, db: DBConnectionDep, offset
     return controller.get_users(db, offset, limit)
 
 
-
-# @session_router.post('/login', response_model=schemas.UserResponse|None)
-# async def session_create(db: DBConnectionDep, body: OAuth2PasswordRequestForm = Depends()):
-#     return await auth.authenticate(body, db)
-
-
-# @session_router.get('/refresh_token', response_model=schemas.UserResponse|None)
-# async def session_read(db: DBConnectionDep, body: OAuth2PasswordRequestForm = Depends(), credentials: HTTPAuthorizationCredentials = Security(security)):
-#     return auth(db, body)
-
-
-# @session_router.put('/', response_model=schemas.UserResponse)
-# async def session_update(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
-#     return await auth.refresh(db, credentials)
-
-
-
 @user_router.post('/', response_model=schemas.UserResponse|None)
 async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks: BackgroundTasks, request: Request, body: schemas.UserCreationModel):
     exist_user = await controller.get_user(email=body.email, db=db)
@@ -47,7 +30,6 @@ async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='User already exist')
     body.password = auth.password.hash(body.password)
     user = await controller.create(body, db)
-    # bg_tasks.add_task(ConfirmationEmail(email=user.email), username=user.username, host=request.base_url)
     return user
 
 
@@ -58,8 +40,8 @@ async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAut
 
 
 @session_router.delete('/')
-async def logout(user: AuthDep,  db: DBConnectionDep):
-    return await auth.logout()
+async def logout(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
+    return await auth.logout(credentials.credentials, db)
 
 
 @session_router.put('/', response_model=schemas.TokenPairModel)
@@ -73,7 +55,7 @@ async def read_user(user: AuthDep):
     
 
 @user_router.patch("/role", response_model=schemas.UserResponse)
-async def update_user_avatar(db: DBConnectionDep, controller: UsersControllerDep, current_user: AuthDep, file: UploadFile = File()):
+async def update_role(db: DBConnectionDep, controller: UsersControllerDep, current_user: AuthDep, file: UploadFile = File()):
    pass
 
 

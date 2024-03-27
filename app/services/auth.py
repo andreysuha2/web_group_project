@@ -98,9 +98,8 @@ class Auth:
         print('=======================================', refres_token_str)
         payload = await self.token.decode_refresh(refres_token_str)
         print('=======================================1111')
-
         refres_token = db.query(self.TokensModel).filter(
-            self.TokensModel.refresh==refres_token_str
+            self.TokensModel.token==refres_token_str
             ).options(joinedload(self.TokensModel.user)).first()
         print('=======================================222', refres_token)
         user = await self.__get_user(payload["email"], db)
@@ -118,8 +117,13 @@ class Auth:
             raise self.invalid_credential_error
         return await self.__generate_tokens(user, db)
     
-    async def logout(self, credentials: OAuth2PasswordRequestForm, db: Session) -> None:
-        pass
+    async def logout(self, token: str, db: Session) -> None:
+        payload = await self.token.decode_access(token)
+        db.query(self.TokensModel).filter(
+            self.TokensModel.token==token
+            ).delete()
+        db.commit()
+        return status.HTTP_200_OK
     
     async def __generate_tokens(self, user: UserModel, db: Session) -> schemas.TokenLoginResponse:
         access_token = await self.token.create_access({"email": user.email})
