@@ -32,3 +32,4 @@ class PhotoResponse(PhotoModel):
     class Config:
         from_attributes = True
 
+

@@ -1,8 +1,11 @@
+import os
 
+from pathlib import Path
+from datetime import datetime
 from app.db import DBConnectionDep
 from fastapi import UploadFile
-from .models import Photo, Tag  # Припускаючи, що моделі так називаються
-from .schemas import PhotoModel  # Припускаючи, що схема створення фото так називається
+from .models import Photo, Tag
+from .schemas import PhotoModel
 
 
 class PhotosController:
@@ -11,9 +14,7 @@ class PhotosController:
         self.db = db
     @staticmethod
     def create_photo(db: DBConnectionDep, photo_data: PhotoModel, file: UploadFile):
-        # Спочатку збережемо файл на диск або в облачне сховище
-        # Потім створимо запис в базі даних для фото
-        # В цьому прикладі ми просто припускаємо, що файл вже збережено і маємо URL
+
         file_url = "path/to/the/saved/file.jpg"  # Тут має бути логіка збереження файлу і отримання URL
 
         # Створення нового об'єкта фотографії
