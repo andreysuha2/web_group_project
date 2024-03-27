@@ -14,6 +14,7 @@ from users import schemas
 from dataclasses import dataclass
 from typing import Callable, List, Annotated
 
+
 class TokenScopes(Enum):
     ACCESS='access_token'
     REFRESH='refresh_token'
@@ -93,38 +94,41 @@ class Auth:
             return False
         return True
     
-    async def refresh(self, refres_token_str: str, db: Session) -> schemas.TokenPairModel:
-        payload = await self.token.decode_refresh(refres_token_str)
-        refres_token = db.query(self.TokensModel).filter(
-            self.TokensModel.refresh==refres_token_str
+    async def refresh(self, refresh_token_str: str, db: Session) -> schemas.TokenLoginResponse:
+        payload = await self.token.decode_refresh(refresh_token_str)
+        refresh_token = db.query(self.TokensModel).filter(
+            self.TokensModel.token==refresh_token_str
             ).options(joinedload(self.TokensModel.user)).first()
         user = await self.__get_user(payload["email"], db)
-        if refres_token:
-            db.delete(refres_token)
+        if refresh_token:
+            db.delete(refresh_token)
             db.commit()
-        if user is None or refres_token is None or refres_token.user != user:
+        if user is None or refresh_token is None or refresh_token.user != user:
             raise self.credentionals_exception
         return await self.__generate_tokens(user, db)
         
-    async def authenticate(self, credentials: OAuth2PasswordRequestForm, db: Session) -> schemas.TokenPairModel:
+
+    async def authenticate(self, credentials: OAuth2PasswordRequestForm, db: Session) -> schemas.TokenLoginResponse:
         user = await self.__get_user(credentials.username, db)
         if not self.validate(user, credentials):
             raise self.invalid_credential_error
         return await self.__generate_tokens(user, db)
     
-    async def logout(self, token_str: str, db: Session) -> None:
+    async def logout(self, credentials: OAuth2PasswordRequestForm, db: Session) -> None:
         pass
     
-    async def __generate_tokens(self, user: UserModel, db: Session) -> schemas.TokenPairModel:
+    async def __generate_tokens(self, user: UserModel, db: Session) -> schemas.TokenLoginResponse:
         access_token = await self.token.create_access({"email": user.email})
         refresh_token = await self.token.create_refresh({"email": user.email})
         token = self.TokensModel(token=refresh_token["token"], expired_at=refresh_token["expired_at"])
         user.tokens.append(token)
         db.commit()
         return { 
-            "access": { "token": access_token["token"], "expired_at": access_token["expired_at"] }, 
-            "refresh": { "token": refresh_token["token"], "expired_at": refresh_token["expired_at"] }, 
-            "type": "bearer"
+            "access_token": access_token["token"], 
+            "access_expired_at": access_token["expired_at"] , 
+            "refresh_token": refresh_token["token"],
+            "refresh_expired_at": refresh_token["expired_at"] , 
+            "token_type": "bearer"
         }
         
     async def __get_user(self, username: str, db: Session) -> UserModel | None:
@@ -134,6 +138,7 @@ class Auth:
             )).first()
 
     async def __call__(self, token: str = Depends(oauth2_scheme), db: Session = Depends(db)) -> UserModel:
+        print("==========", token)
         pyload = await self.token.decode_access(token)
         if pyload["email"] is None:
             raise self.credentionals_exception
