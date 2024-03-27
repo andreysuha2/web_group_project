@@ -120,7 +120,8 @@ class Auth:
             self.TokensModel.token==token
             ).delete()
         db.commit()
-        return status.HTTP_200_OK
+        return {"message": "Logout successful"}
+
     
     async def __generate_tokens(self, user: UserModel, db: Session) -> schemas.TokenLoginResponse:
         access_token = await self.token.create_access({"email": user.email})
