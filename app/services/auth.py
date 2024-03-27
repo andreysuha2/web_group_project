@@ -111,14 +111,14 @@ class Auth:
             raise self.credentionals_exception
         return await self.__generate_tokens(user, db)
         
-        
+
     async def authenticate(self, credentials: OAuth2PasswordRequestForm, db: Session) -> schemas.TokenLoginResponse:
         user = await self.__get_user(credentials.username, db)
         if not self.validate(user, credentials):
             raise self.invalid_credential_error
         return await self.__generate_tokens(user, db)
     
-    async def logout(self) -> None:
+    async def logout(self, credentials: OAuth2PasswordRequestForm, db: Session) -> None:
         pass
     
     async def __generate_tokens(self, user: UserModel, db: Session) -> schemas.TokenLoginResponse:

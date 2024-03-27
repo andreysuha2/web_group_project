@@ -8,8 +8,6 @@ from typing import Annotated, List
 from app import settings
 from app.db import DBConnectionDep
 from users.controllers import SessionController, UsersController
-import cloudinary
-import cloudinary.uploader
 
 
 security = HTTPBearer()
@@ -60,7 +58,7 @@ async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAut
 
 
 @session_router.delete('/')
-async def session_delete(user: AuthDep ):
+async def logout(user: AuthDep,  db: DBConnectionDep):
     return await auth.logout()
 
 
@@ -76,25 +74,7 @@ async def read_user(user: AuthDep):
 
 @user_router.patch("/role", response_model=schemas.UserResponse)
 async def update_user_avatar(db: DBConnectionDep, controller: UsersControllerDep, current_user: AuthDep, file: UploadFile = File()):
-    cloudinary.config(
-        cloud_name=settings.CLOUDINARY_NAME,
-        api_key=settings.CLOUDINARY_KEY,
-        api_secret=settings.CLOUDINARY_SECRET,
-        security=True
-    )
-    public_id = f"ContactsApp/{current_user.username}"
-    r = cloudinary.uploader.upload(file.file, public_id=public_id)
-    src_url = cloudinary.CloudinaryImage(public_id).build_url(width=250, height=250, crop='fill', version=r.get('version'))
-    user = await controller.update_avatar(current_user, src_url, db)
-    return user
-
-
-# @user_router.get('/{username}')
-# async def request_email(username: str, response: Response, db: DBConnectionDep):
-#     print('--------------------------------')
-#     print(f'{username} зберігаємо що він відкрив email в БД')
-#     print('--------------------------------')
-#     return FileResponse("src/static/open_check.png", media_type="image/png", content_disposition_type="inline")
+   pass
 
 
 
