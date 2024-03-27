@@ -41,12 +41,8 @@ async def users_list(controller: UsersControllerDep, db: DBConnectionDep, offset
 #     return await auth.refresh(db, credentials)
 
 
-# @session_router.delete('/')
-# async def session_delete(credentials: HTTPAuthorizationCredentials = Security(security) ):
-#     return await auth.logout()
 
-
-@session_router.post('/signup', response_model=schemas.UserResponse|None)
+@user_router.post('/', response_model=schemas.UserResponse|None)
 async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks: BackgroundTasks, request: Request, body: schemas.UserCreationModel):
     exist_user = await controller.get_user(email=body.email, db=db)
     if exist_user:
@@ -57,52 +53,21 @@ async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks
     return user
 
 
-@session_router.post('/login', response_model=schemas.TokenLoginResponse)
+@session_router.post('/', response_model=schemas.TokenLoginResponse)
 async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
     result =  await auth.authenticate(body, db)
     return result
-    
 
 
-# @session_router.post('/login', response_model=schemas.TokenModel)
-# async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
-#     user = await controller.get_user(email=body.email, db=db)
-#     if user is None:
-#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email")
-#     if not auth_service.verify_password(body.password, user.password):
-#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
-#     # Generate JWT
-#     access_token = await auth_service.create_access_token(data={"sub": user.email, "test": "Сергій Багмет"})
-#     refresh_token = await auth_service.create_refresh_token(data={"sub": user.email})
-#     await repositories_users.update_token(user, refresh_token, db)
-#     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+@session_router.delete('/')
+async def session_delete(user: AuthDep ):
+    return await auth.logout()
 
 
-
-@session_router.get('/confirmed_email/{token}')
-async def confirm_email(token: str, db: DBConnectionDep, controller: UsersControllerDep):
-    email = await auth.token.decode_email_confirm(token)
-    user = await controller.get_user(email, db)
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verefication error")
-    if user.confirmed_at:
-        return {"message": "Your email is already confirmed"}
-    await controller.comfirm_email(email, db)
-    return { "message": "Email confirmed!" }
-
-@session_router.post('/request_email')
-async def request_email(body: schemas.RequestEmail, bg_tasks: BackgroundTasks, request: Request, db: DBConnectionDep, controller: UsersControllerDep):
-    user = await controller.get_user(body.email, db)
-    if user.confirmed_at:
-        return {"message": "Your email is already confirmed"}
-    if user:
-        pass
-        # bg_tasks.add_task(ConfirmationEmail(body.email), username=user.username, host=request.base_url)
-    return {"message": "Check your email for confirmation"}
-
-@session_router.get('/refresh_token', response_model=schemas.TokenPairModel)
+@session_router.put('/', response_model=schemas.TokenPairModel)
 async def refresh_token(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
     return await auth.refresh(credentials.credentials, db)
+
 
 @user_router.get("/", response_model=schemas.UserResponse)
 async def read_user(user: AuthDep):

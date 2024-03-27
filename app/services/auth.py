@@ -14,6 +14,7 @@ from users import schemas
 from dataclasses import dataclass
 from typing import Callable, List, Annotated
 
+
 class TokenScopes(Enum):
     ACCESS='access_token'
     REFRESH='refresh_token'
@@ -93,12 +94,15 @@ class Auth:
             return False
         return True
     
-    async def refresh(self, refres_token_str: str, db: Session) -> schemas.TokenPairModel:
+    async def refresh(self, refres_token_str: str, db: Session) -> schemas.TokenLoginResponse:
         print('=======================================', refres_token_str)
         payload = await self.token.decode_refresh(refres_token_str)
+        print('=======================================1111')
+
         refres_token = db.query(self.TokensModel).filter(
             self.TokensModel.refresh==refres_token_str
             ).options(joinedload(self.TokensModel.user)).first()
+        print('=======================================222', refres_token)
         user = await self.__get_user(payload["email"], db)
         if refres_token:
             db.delete(refres_token)
@@ -107,13 +111,14 @@ class Auth:
             raise self.credentionals_exception
         return await self.__generate_tokens(user, db)
         
-    async def authenticate(self, credentials: OAuth2PasswordRequestForm, db: Session) -> schemas.TokenPairModel:
+        
+    async def authenticate(self, credentials: OAuth2PasswordRequestForm, db: Session) -> schemas.TokenLoginResponse:
         user = await self.__get_user(credentials.username, db)
         if not self.validate(user, credentials):
             raise self.invalid_credential_error
         return await self.__generate_tokens(user, db)
     
-    async def logout(self, token_str: str, db: Session) -> None:
+    async def logout(self) -> None:
         pass
     
     async def __generate_tokens(self, user: UserModel, db: Session) -> schemas.TokenLoginResponse:

@@ -39,8 +39,7 @@ class AppSettings(BaseModel):
 
     @property
     def LOGIN_URL(self) -> str:
-        # return f"{self.BASE_URL_PREFIX}/session"
-        return f"{self.BASE_URL_PREFIX}/session/login"
+        return f"{self.BASE_URL_PREFIX}/session"
     
 class PhotoSettings(BaseModel):
     MAX_TAGS: int = 5
