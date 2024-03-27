@@ -116,15 +116,17 @@ class Auth:
     async def logout(self, token_str: str, db: Session) -> None:
         pass
     
-    async def __generate_tokens(self, user: UserModel, db: Session) -> schemas.TokenPairModel:
+    async def __generate_tokens(self, user: UserModel, db: Session) -> schemas.TokenLoginResponse:
         access_token = await self.token.create_access({"email": user.email})
         refresh_token = await self.token.create_refresh({"email": user.email})
         token = self.TokensModel(token=refresh_token["token"], expired_at=refresh_token["expired_at"])
         user.tokens.append(token)
         db.commit()
         return { 
-            "access_token": { "token": access_token["token"], "expired_at": access_token["expired_at"] }, 
-            "refresh_token": { "token": refresh_token["token"], "expired_at": refresh_token["expired_at"] }, 
+            "access_token": access_token["token"], 
+            "access_expired_at": access_token["expired_at"] , 
+            "refresh_token": refresh_token["token"],
+            "refresh_expired_at": refresh_token["expired_at"] , 
             "token_type": "bearer"
         }
         
@@ -135,6 +137,7 @@ class Auth:
             )).first()
 
     async def __call__(self, token: str = Depends(oauth2_scheme), db: Session = Depends(db)) -> UserModel:
+        print("==========", token)
         pyload = await self.token.decode_access(token)
         if pyload["email"] is None:
             raise self.credentionals_exception

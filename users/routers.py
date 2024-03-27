@@ -57,7 +57,7 @@ async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks
     return user
 
 
-@session_router.post('/login', response_model=schemas.TokenPairModel)
+@session_router.post('/login', response_model=schemas.TokenLoginResponse)
 async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
     result =  await auth.authenticate(body, db)
     return result

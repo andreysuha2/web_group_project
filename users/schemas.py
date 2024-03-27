@@ -1,6 +1,5 @@
 from pydantic import Field, BaseModel, EmailStr
 from datetime import datetime
-from typing import List, Dict
 
 class UserCreationModel(BaseModel):
     username: str = Field(min_length=5, max_length=20, example="username")
@@ -23,6 +22,13 @@ class TokenPairModel(BaseModel):
     refresh_token: dict
     token_type: str 
 
+
+class TokenLoginResponse(BaseModel):
+    access_token: str
+    access_expired_at: datetime
+    refresh_token: str
+    refresh_expired_at: datetime
+    token_type: str
 
 class TokenModel(BaseModel):
     access_token: dict
