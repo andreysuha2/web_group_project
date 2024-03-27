@@ -1,8 +1,8 @@
-"""Init
+"""'init'
 
-Revision ID: 7ceaca636613
+Revision ID: 7dba1d2d6d63
 Revises: 
-Create Date: 2024-03-21 12:53:55.009697
+Create Date: 2024-03-26 21:04:41.937251
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '7ceaca636613'
+revision: str = '7dba1d2d6d63'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,11 +26,11 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('email', sa.String(length=50), nullable=False),
     sa.Column('username', sa.String(length=50), nullable=False),
-    sa.Column('password', sa.String(), nullable=False),
-    sa.Column('role', sa.Enum(name='user_role_enum'), nullable=False),
+    sa.Column('password', sa.String(length=200), nullable=False),
+    sa.Column('role', sa.Enum('ADMIN', 'MODER', 'USER', name='userroles'), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('update_at', sa.DateTime(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('id'),
@@ -49,12 +49,13 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('tokens',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('token', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('token', sa.String(), nullable=False),
     sa.Column('expired_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id', 'token')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('token')
     )
     op.create_table('comments',
     sa.Column('id', sa.Integer(), nullable=False),

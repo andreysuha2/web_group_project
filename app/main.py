@@ -28,3 +28,7 @@ def status(db: DBConnectionDep):
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host=settings.app.HOST, port=settings.app.PORT, reload=settings.app.ENV == "development")
+
+
+
+    
