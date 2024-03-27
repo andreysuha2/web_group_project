@@ -1,6 +1,6 @@
 
 from datetime import datetime
-from app.db import DBConnectionDep
+from ..app.db import DBConnectionDep
 from pathlib import Path
 from datetime import datetime
 
@@ -10,7 +10,7 @@ from .schemas import PhotoModel, PhotoResponse, TagModel
 
 class PhotosController:
 
-    def __init__(self, db):
+    def __init__(self):
         self.db = DBConnectionDep
 
     async def create_photo(self, photo_data: PhotoModel, file: UploadFile):
