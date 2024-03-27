@@ -1,11 +1,11 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 import re
 
 
 class TagModel(BaseModel):
     name: str
 
-    @validator('name')
+    @field_validator('name')
     def validate_tag_name(cls, v):
         pattern = r'^#[^\s]+$'
         if not re.match(pattern, v):

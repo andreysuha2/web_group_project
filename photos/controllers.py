@@ -1,50 +1,42 @@
-import os
 
-from pathlib import Path
 from datetime import datetime
 from app.db import DBConnectionDep
+from pathlib import Path
+from datetime import datetime
+
 from fastapi import UploadFile
 from .models import Photo, Tag
-from .schemas import PhotoModel
-
+from .schemas import PhotoModel, PhotoResponse, TagModel
 
 class PhotosController:
 
-    def __init__(self, db: DBConnectionDep):
-        self.db = db
-    @staticmethod
-    def create_photo(db: DBConnectionDep, photo_data: PhotoModel, file: UploadFile):
+    def __init__(self, db):
+        self.db = DBConnectionDep
 
-        file_url = "path/to/the/saved/file.jpg"  # Тут має бути логіка збереження файлу і отримання URL
+    async def create_photo(self, photo_data: PhotoModel, file: UploadFile):
 
-        # Створення нового об'єкта фотографії
+        file_url = await self.save_photo(file)
+
         new_photo = Photo(
             title=photo_data.title,
             description=photo_data.description,
-            image_url=file_url,
-            tags=[]
+            user_id=photo_data.user_id,
+            image_url=file_url
         )
+        self.db.add(new_photo)
+        self.db.flush()  # Отримати id для new_photo
 
         # Обробка тегів
         for tag_data in photo_data.tags:
-            # Перевірка, чи існує тег в базі
-            tag = db.query(Tag).filter(Tag.name == tag_data.name).first()
+            tag = self.db.query(Tag).filter_by(name=tag_data.name).first()
             if not tag:
-                # Якщо тег не знайдено, створюємо новий
                 tag = Tag(name=tag_data.name)
-                db.add(tag)
-                db.commit()
-
-            # Додаємо тег до фотографії
+                self.db.add(tag)
+                self.db.flush()  # Отримати id для tag
             new_photo.tags.append(tag)
 
-        # Додаємо фотографію до сесії і зберігаємо зміни
-        db.add(new_photo)
-        db.commit()
-        db.refresh(new_photo)
-
-        return new_photo
-
+        self.db.commit()
+        return PhotoResponse.from_orm(new_photo)  # Повернення відповіді
 
     async def save_photo(self, file: UploadFile) -> str:
         base_path = Path("app/files-storage")
