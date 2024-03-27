@@ -62,7 +62,7 @@ async def logout(user: AuthDep,  db: DBConnectionDep):
     return await auth.logout()
 
 
-@session_router.put('/', response_model=schemas.TokenPairModel)
+@session_router.put('/', response_model=schemas.TokenLoginResponse)
 async def refresh_token(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
     return await auth.refresh(credentials.credentials, db)
 

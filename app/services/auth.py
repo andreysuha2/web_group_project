@@ -94,20 +94,16 @@ class Auth:
             return False
         return True
     
-    async def refresh(self, refres_token_str: str, db: Session) -> schemas.TokenLoginResponse:
-        print('=======================================', refres_token_str)
-        payload = await self.token.decode_refresh(refres_token_str)
-        print('=======================================1111')
-
-        refres_token = db.query(self.TokensModel).filter(
-            self.TokensModel.refresh==refres_token_str
+    async def refresh(self, refresh_token_str: str, db: Session) -> schemas.TokenLoginResponse:
+        payload = await self.token.decode_refresh(refresh_token_str)
+        refresh_token = db.query(self.TokensModel).filter(
+            self.TokensModel.token==refresh_token_str
             ).options(joinedload(self.TokensModel.user)).first()
-        print('=======================================222', refres_token)
         user = await self.__get_user(payload["email"], db)
-        if refres_token:
-            db.delete(refres_token)
+        if refresh_token:
+            db.delete(refresh_token)
             db.commit()
-        if user is None or refres_token is None or refres_token.user != user:
+        if user is None or refresh_token is None or refresh_token.user != user:
             raise self.credentionals_exception
         return await self.__generate_tokens(user, db)
         
