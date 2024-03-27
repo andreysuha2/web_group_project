@@ -1,12 +1,13 @@
 
 from datetime import datetime
-from ..app.db import DBConnectionDep
+from app.db import DBConnectionDep
 from pathlib import Path
 from datetime import datetime
 
 from fastapi import UploadFile
-from .models import Photo, Tag
-from .schemas import PhotoModel, PhotoResponse, TagModel
+from photos.models import Photo, Tag
+from photos.schemas import PhotoModel, PhotoResponse, TagModel
+
 
 class PhotosController:
 
