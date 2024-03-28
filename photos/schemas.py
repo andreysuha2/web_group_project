@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, Field
 from typing import List, Optional
 import re
 
@@ -25,6 +25,7 @@ class PhotoModel(BaseModel):
     title: str
     description: Optional[str] = None
     tags: Optional[List[TagModel]] = []
+    user_id: int = Field(..., description="ID of the user who is uploading the photo")
 
 
 class PhotoResponse(PhotoModel):
