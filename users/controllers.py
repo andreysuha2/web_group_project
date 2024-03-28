@@ -43,10 +43,10 @@ class UsersController:
         return user
 
 
-    def get_users(self, db: DBConnectionDep, offset: int = 0, limit: int = 100) -> Optional[List[User]]:
-        # stmt = select(User).offset(offset).limit(limit)
-        # users = db.execute(stmt)
-        # return users.scalars().all()
-        return db.query(self.base_model).offset(offset).limit(limit).all()
+    def get_users(self, db: DBConnectionDep) -> Optional[List[User]]:
+        return db.query(self.base_model).all()
 
+
+    def get_user_by_id(self, user_id: int, db: DBConnectionDep) -> User | None:
+        return db.query(self.base_model).filter(self.base_model.id == user_id).first()
 

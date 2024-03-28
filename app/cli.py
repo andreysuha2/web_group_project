@@ -3,12 +3,21 @@ import dotenv
 import typer
 import shutil
 from pathlib import Path
+from users.seed import main as users_seed
+from photos.seed import main as photos_seed
+from comments.seed import main as comments_seed
 try:
     from app.settings import settings
 except TypeError:
     settings = None
 
 app = typer.Typer()
+
+@app.command()
+def seed():
+    users_seed()
+    photos_seed()
+    comments_seed()
 
 @app.command()
 def initenv(env: str = 'development'):

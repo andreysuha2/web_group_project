@@ -1,0 +1,20 @@
+version: '1'
+services:
+  postgres:
+    image: postgres:latest
+    container_name: web_group_project_postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+  redis-stack:
+    image: redis/redis-stack
+    container_name: web_group_project_redis
+    ports:
+      - "${REDIS_PORT}:6379"
+      - "${REDIS_GUI_PORT}:8001"
+networks:
+  network1:
+    external: true
