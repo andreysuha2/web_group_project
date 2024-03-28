@@ -9,18 +9,12 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "${DB_PORT}:5432"
-  redis:
-    image: redis:alpine
+  redis-stack:
+    image: redis/redis-stack
     container_name: web_group_project_redis
     ports:
       - "${REDIS_PORT}:6379"
-  redisinsights:
-    image: redislabs/redisinsight:latest
-    container_name: web_group_project_redisinsights
-    ports:
-      - '${REDIS_GUI_PORT}:5540'
-    volumes:
-      - ./redisinsight:/data
+      - "${REDIS_GUI_PORT}:8001"
 networks:
   network1:
     external: true

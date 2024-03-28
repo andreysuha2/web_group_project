@@ -25,8 +25,8 @@ async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAut
 
 
 @session_router.delete('/')
-async def logout(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
-    return await auth.logout(credentials.credentials, db)
+async def logout(db: DBConnectionDep, user: AuthDep, token: str = Depends(auth.oauth2_scheme)):
+    return await auth.logout(user, token, db)
 
 
 @session_router.put('/', response_model=schemas.TokenLoginResponse)
