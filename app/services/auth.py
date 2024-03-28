@@ -13,7 +13,7 @@ from users.models import User, Token as TokenDBModel
 from users import schemas
 from dataclasses import dataclass
 from typing import Callable, List, Annotated
-
+from app.services.redis import redis_client
 
 class TokenScopes(Enum):
     ACCESS='access_token'
@@ -114,15 +114,23 @@ class Auth:
             raise self.invalid_credential_error
         return await self.__generate_tokens(user, db)
     
-    async def logout(self, credentials: OAuth2PasswordRequestForm, db: Session) -> None:
-        pass
+    async def logout(self, user: UserModel, token: str, db: Session) -> dict:
+        payload = await self.token.decode_access(token)
+        refresh_token = db.query(self.TokensModel).filter(self.TokensModel.id == payload["refresh"], self.TokensModel.user == user).first()
+        redis_client.set(f"{settings.token.BLACK_LIST_PREFIX}{token}", 1, ex=timedelta(minutes=settings.token.ACCESS_EXPIRED))
+        if refresh_token:
+            db.delete(refresh_token)
+            db.commit()
+        return {"message": "Logout successful"}
+
     
     async def __generate_tokens(self, user: UserModel, db: Session) -> schemas.TokenLoginResponse:
-        access_token = await self.token.create_access({"email": user.email})
         refresh_token = await self.token.create_refresh({"email": user.email})
         token = self.TokensModel(token=refresh_token["token"], expired_at=refresh_token["expired_at"])
         user.tokens.append(token)
         db.commit()
+        db.refresh(token)
+        access_token = await self.token.create_access({"email": user.email, "refresh": token.id})
         return { 
             "access_token": access_token["token"], 
             "access_expired_at": access_token["expired_at"] , 
@@ -138,7 +146,8 @@ class Auth:
             )).first()
 
     async def __call__(self, token: str = Depends(oauth2_scheme), db: Session = Depends(db)) -> UserModel:
-        print("==========", token)
+        if redis_client.get(f"{settings.token.BLACK_LIST_PREFIX}{token}") == "1":
+            raise self.credentionals_exception
         pyload = await self.token.decode_access(token)
         if pyload["email"] is None:
             raise self.credentionals_exception

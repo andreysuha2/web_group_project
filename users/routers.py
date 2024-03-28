@@ -18,26 +18,26 @@ SessionControllerDep = Annotated[SessionController, Depends(SessionController)]
 session_router = APIRouter(prefix="/session", tags=['session'])
 user_router = APIRouter(prefix="/users", tags=['users'])
 
-@user_router.get("/all", response_model=List[schemas.UserModel]|None, status_code=status.HTTP_200_OK)
-async def users_list(controller: UsersControllerDep, db: DBConnectionDep, offset: int = 0, limit: int = 100):
-    return controller.get_users(db, offset, limit)
+@session_router.post('/', response_model=schemas.TokenLoginResponse)
+async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
+    result =  await auth.authenticate(body, db)
+    return result
+
+
+@session_router.delete('/')
+async def logout(db: DBConnectionDep, user: AuthDep, token: str = Depends(auth.oauth2_scheme)):
+    return await auth.logout(user, token, db)
+
+
+@session_router.put('/', response_model=schemas.TokenLoginResponse)
+async def refresh_token(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
+    return await auth.refresh(credentials.credentials, db)
 
 
 
-# @session_router.post('/login', response_model=schemas.UserResponse|None)
-# async def session_create(db: DBConnectionDep, body: OAuth2PasswordRequestForm = Depends()):
-#     return await auth.authenticate(body, db)
-
-
-# @session_router.get('/refresh_token', response_model=schemas.UserResponse|None)
-# async def session_read(db: DBConnectionDep, body: OAuth2PasswordRequestForm = Depends(), credentials: HTTPAuthorizationCredentials = Security(security)):
-#     return auth(db, body)
-
-
-# @session_router.put('/', response_model=schemas.UserResponse)
-# async def session_update(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
-#     return await auth.refresh(db, credentials)
-
+@user_router.get("/all", response_model=List[schemas.UserResponse]|None, status_code=status.HTTP_200_OK)
+async def users_list(controller: UsersControllerDep, db: DBConnectionDep, user: AuthDep):
+    return controller.get_users(db)
 
 
 @user_router.post('/', response_model=schemas.UserResponse|None)
@@ -47,33 +47,21 @@ async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='User already exist')
     body.password = auth.password.hash(body.password)
     user = await controller.create(body, db)
-    # bg_tasks.add_task(ConfirmationEmail(email=user.email), username=user.username, host=request.base_url)
     return user
 
 
-@session_router.post('/', response_model=schemas.TokenLoginResponse)
-async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
-    result =  await auth.authenticate(body, db)
-    return result
-
-
-@session_router.delete('/')
-async def logout(user: AuthDep,  db: DBConnectionDep):
-    return await auth.logout()
-
-
-@session_router.put('/', response_model=schemas.TokenLoginResponse)
-async def refresh_token(db: DBConnectionDep, credentials: HTTPAuthorizationCredentials = Security(security)):
-    return await auth.refresh(credentials.credentials, db)
-
-
-@user_router.get("/", response_model=schemas.UserResponse)
-async def read_user(user: AuthDep):
+@user_router.get("/", response_model=schemas.UserResponse, status_code=status.HTTP_200_OK)
+async def read_self_user(user: AuthDep):
     return user
     
 
+@user_router.get("/{user_id}", response_model=schemas.UserResponse|None, status_code=status.HTTP_200_OK)
+async def read_user_by_id(user_id: int, db: DBConnectionDep, user: AuthDep,  controller: UsersControllerDep):
+    return  controller.get_user_by_id(user_id=user_id, db=db)
+    
+
 @user_router.patch("/role", response_model=schemas.UserResponse)
-async def update_user_avatar(db: DBConnectionDep, controller: UsersControllerDep, current_user: AuthDep, file: UploadFile = File()):
+async def update_role(db: DBConnectionDep, controller: UsersControllerDep, current_user: AuthDep, file: UploadFile = File()):
    pass
 
 

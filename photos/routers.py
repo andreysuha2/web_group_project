@@ -17,13 +17,12 @@ async def photos_list(user: AuthDep, controller: PhotoContollerDep, db: DBConnec
 
 @photos_router.post("/", response_model=schemas.PhotoResponse)
 async def upload_photo(
-        title: str = Form(...),
+        user: AuthDep,  # Використання AuthDep для отримання аутентифікованого користувача
+        controller: PhotoContollerDep,
+        title: str = Form(),
         description: str = Form(None),
         tags: List[str] = Form(None),
-        file: UploadFile = File(...),
-        user: UserResponse = Depends(AuthDep),  # Використання AuthDep для отримання аутентифікованого користувача
-        controller: PhotosController = Depends(),
-
+        file: UploadFile = File(),
 ):
     # Перетворення тегів у список об'єктів TagModel
     tag_models = [schemas.TagModel(name=tag) for tag in tags] if tags else []

@@ -19,9 +19,10 @@ class DBSettings(BaseModel):
     
 class TokenSettings(BaseModel):
     ALGORITHM: str = "HS256"
-    DEFAULT_EXPIRED: int = 1200
-    ACCESS_EXPIRED: int = 1500
+    DEFAULT_EXPIRED: int = 120
+    ACCESS_EXPIRED: int = 15
     REFRESH_EXPIRED: int = 7 * 1440
+    BLACK_LIST_PREFIX: str = "INVALID_ACCESS_TOKEN_"
 
 class AppSettings(BaseModel):
     NAME: str = "PhotoShopper"
@@ -44,10 +45,18 @@ class AppSettings(BaseModel):
 class PhotoSettings(BaseModel):
     MAX_TAGS: int = 5
 
+class RedisSettings(BaseModel):
+    PORT: int = int(os.getenv("REDIS_PORT"))
+    HOST: str = os.getenv("REDIS_HOST")
+    DB: int = 0
+    ENCODING: str = 'utf-8'
+
 class Settings(BaseModel):
     app: AppSettings = AppSettings()
     db: DBSettings = DBSettings()
     token: TokenSettings = TokenSettings()
+    photo: PhotoSettings = PhotoSettings()
+    redis: RedisSettings = RedisSettings()
 
 settings = Settings()
 
