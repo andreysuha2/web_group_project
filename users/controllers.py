@@ -1,8 +1,7 @@
+from email import message
 from sqlalchemy import select
-# from libgravatar import Gravatar
-
+from fastapi import  status
 from typing import List, Optional
-# import users
 from users.models import User
 from users.models import UserRoles
 from sqlalchemy.orm import Session
@@ -15,9 +14,6 @@ from app.db import DBConnectionDep
 class SessionController:
     base_model = User
 
-    # async def get_users(self, email: str, db: Session, skip: int = 0, limit: int = 100) -> base_model | None:
-    #     return db.query(self.base_model).filter(self.base_model.email == email).first()
-    
     async def get_user(self, email: str, db: Session) -> base_model | None:
         return db.query(self.base_model).filter(self.base_model.email == email).first()
     
@@ -37,12 +33,6 @@ class SessionController:
 class UsersController:
     base_model = User
 
-    async def update_avatar(self, user: base_model, url: str, db: DBConnectionDep):
-        user.avatar = url
-        db.commit()
-        return user
-
-
     def get_users(self, db: DBConnectionDep) -> Optional[List[User]]:
         return db.query(self.base_model).all()
 
@@ -50,3 +40,22 @@ class UsersController:
     def get_user_by_id(self, user_id: int, db: DBConnectionDep) -> User | None:
         return db.query(self.base_model).filter(self.base_model.id == user_id).first()
 
+
+    def update_role(self, user: User, db: DBConnectionDep, new_role: str, user_id: int) -> User:
+        user_to_update = db.query(self.base_model).filter(self.base_model.id == user_id).first()
+        if user.role == "admin":
+            user_to_update.role = new_role
+            # db.query(self.base_model).filter(self.base_model.id == user_id).update({"role": new_role})
+            db.commit()
+            print("----------------------------------", user_to_update)
+            return user_to_update
+        if user.role == "moder" and new_role != "admin":
+            user_to_update.role = new_role
+            # db.query(self.base_model).filter(self.base_model.id == user_id).update({"role": new_role})
+            db.commit()
+            print("----------------------------------", user_to_update)
+            return user_to_update
+        else:
+            print("---------------------===============-------------", user_to_update)
+            return user_to_update
+            

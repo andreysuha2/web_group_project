@@ -107,17 +107,17 @@ class Auth:
             raise self.credentionals_exception
         return await self.__generate_tokens(user, db)
         
-
     async def authenticate(self, credentials: OAuth2PasswordRequestForm, db: Session) -> schemas.TokenLoginResponse:
         user = await self.__get_user(credentials.username, db)
         if not self.validate(user, credentials):
             raise self.invalid_credential_error
         return await self.__generate_tokens(user, db)
     
-    async def logout(self, token: str, db: Session) -> None:
-        payload = await self.token.decode_access(token)
+
+    async def logout(self, user: UserModel, db: Session) -> None:
+        user_id = user.id
         db.query(self.TokensModel).filter(
-            self.TokensModel.token==token
+            self.TokensModel.user_id==user_id
             ).delete()
         db.commit()
         return {"message": "Logout successful"}

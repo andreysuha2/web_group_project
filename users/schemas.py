@@ -1,5 +1,7 @@
+from typing import List
 from pydantic import Field, BaseModel, EmailStr
 from datetime import datetime
+from users import models
 
 class UserCreationModel(BaseModel):
     username: str = Field(min_length=5, max_length=20, example="username")
@@ -13,6 +15,7 @@ class UserModel(BaseModel):
 
 class UserResponse(UserModel):
     id: int
+    role: models.UserRoles
 
     class Config:
         from_attributes = True
@@ -36,3 +39,5 @@ class TokenModel(BaseModel):
 
 class RequestEmail(BaseModel):
     email: EmailStr
+
+    
