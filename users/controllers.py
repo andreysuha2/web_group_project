@@ -43,19 +43,15 @@ class UsersController:
 
     def update_role(self, user: User, db: DBConnectionDep, new_role: str, user_id: int) -> User:
         user_to_update = db.query(self.base_model).filter(self.base_model.id == user_id).first()
-        if user.role == "admin":
-            user_to_update.role = new_role
-            # db.query(self.base_model).filter(self.base_model.id == user_id).update({"role": new_role})
+        if user.role.value == "admin":
+            user_to_update.role = new_role.upper()
             db.commit()
-            print("----------------------------------", user_to_update)
             return user_to_update
-        if user.role == "moder" and new_role != "admin":
-            user_to_update.role = new_role
-            # db.query(self.base_model).filter(self.base_model.id == user_id).update({"role": new_role})
+        if user.role.value == "moder" and new_role != "admin":
+            user_to_update.role = new_role.upper()
             db.commit()
-            print("----------------------------------", user_to_update)
             return user_to_update
         else:
-            print("---------------------===============-------------", user_to_update)
+            print("---------------------========zsdxfcgh=======-------------   errrrrooooorrrr")
             return user_to_update
             

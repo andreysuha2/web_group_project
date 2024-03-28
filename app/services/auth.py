@@ -144,7 +144,7 @@ class Auth:
             )).first()
 
     async def __call__(self, token: str = Depends(oauth2_scheme), db: Session = Depends(db)) -> UserModel:
-        print("==========", token)
+        # print("==========", token)
         pyload = await self.token.decode_access(token)
         if pyload["email"] is None:
             raise self.credentionals_exception

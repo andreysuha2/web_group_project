@@ -65,9 +65,9 @@ async def update_role(db: DBConnectionDep, controller: UsersControllerDep, curre
     roles = [role.value for role in UserRoles]
     if new_role not in roles:
         raise HTTPException(status_code = status.HTTP_406_NOT_ACCEPTABLE, detail = "Invalid role input")
-    if current_user.role == "user":
+    if current_user.role.value == "user":
         raise HTTPException(status_code = status.HTTP_403_FORBIDDEN)
-    if current_user.role == "moder" and new_role == "admin":
+    if current_user.role.value == "moder" and new_role == "admin":
         raise HTTPException(status_code = status.HTTP_403_FORBIDDEN)
     return controller.update_role(user=current_user, db=db, new_role=new_role, user_id = user_id)
 
