@@ -18,17 +18,21 @@ async def photos_list(user: AuthDep, controller: PhotoContollerDep, db: DBConnec
 @photos_router.post("/", response_model=schemas.PhotoResponse)
 async def upload_photo(
         user: AuthDep,  # Використання AuthDep для отримання аутентифікованого користувача
-        controller: PhotoContollerDep,
+
+        db: DBConnectionDep,
+        name: str = Form(),
         title: str = Form(),
         description: str = Form(None),
         tags: List[str] = Form(None),
         file: UploadFile = File(),
 ):
+    controller = PhotosController(db)
     # Перетворення тегів у список об'єктів TagModel
     tag_models = [schemas.TagModel(name=tag) for tag in tags] if tags else []
 
     # Створення об'єкта PhotoModel для передачі в контролер
     photo_model = schemas.PhotoModel(
+        name=name,
         title=title,
         description=description,
         tags=tag_models,
