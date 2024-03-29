@@ -2,6 +2,7 @@ from typing import List
 from pydantic import Field, BaseModel, EmailStr
 from datetime import datetime
 from users import models
+from photos.schemas import PhotoModel
 
 class UserCreationModel(BaseModel):
     username: str = Field(min_length=5, max_length=20, example="username")
@@ -13,12 +14,18 @@ class UserModel(BaseModel):
     email: EmailStr
     created_at: datetime
 
+
 class UserResponse(UserModel):
     id: int
     role: models.UserRoles
 
     class Config:
         from_attributes = True
+
+
+class UserSelfModel(UserResponse):
+    photos: List[PhotoModel]
+
 
 class TokenPairModel(BaseModel):
     access_token: dict

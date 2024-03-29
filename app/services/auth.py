@@ -153,6 +153,7 @@ class Auth:
         user = await self.__get_user(pyload["email"], db)
         if user is None:
             raise self.not_found_error
+            
         return user
         
 

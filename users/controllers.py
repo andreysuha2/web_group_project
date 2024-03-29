@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from users import schemas
 from datetime import datetime
 from app.db import DBConnectionDep
+from datetime import datetime
 
 
 
@@ -43,6 +44,8 @@ class UsersController:
 
     def update_role(self, user: User, db: DBConnectionDep, new_role: str, user_id: int) -> User:
         user_to_update = db.query(self.base_model).filter(self.base_model.id == user_id).first()
+        if user_to_update is None:
+            return None
         if user.role.value == "admin":
             user_to_update.role = new_role.upper()
             db.commit()
@@ -52,6 +55,21 @@ class UsersController:
             db.commit()
             return user_to_update
         else:
-            print("---------------------========zsdxfcgh=======-------------   errrrrooooorrrr")
+            print("---------------------========zsdxfcgh=======------------errrrrooooorrrr")
             return user_to_update
+            
+
+    def ban(self,db: DBConnectionDep, user_id: int) -> User:
+        user_to_update = db.query(self.base_model).filter(self.base_model.id == user_id).first()
+        user_to_update.banned = datetime.now()
+        db.commit()
+        return user_to_update
+  
+            
+    def unban(self,db: DBConnectionDep, user_id: int) -> User:
+        user_to_update = db.query(self.base_model).filter(self.base_model.id == user_id).first()
+        user_to_update.banned = None
+        db.commit()
+        return user_to_update
+  
             

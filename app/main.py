@@ -3,6 +3,7 @@ from sqlalchemy import text
 from app.settings import settings
 from app.db import DBConnectionDep
 from datetime import datetime, UTC
+from fastapi.middleware.cors import CORSMiddleware
 from users.routers import session_router, user_router
 from photos.routers import photos_router
 from comments.routers import comments_router
