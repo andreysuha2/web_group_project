@@ -21,6 +21,8 @@ user_router = APIRouter(prefix="/users", tags=['users'])
 
 @session_router.post('/', response_model=schemas.TokenLoginResponse)
 async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
+    if db.query(User.banned).filter(User.email == body.username).first()[0] is not None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='User banned')
     result =  await auth.authenticate(body, db)
     return result
 
