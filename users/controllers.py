@@ -80,8 +80,6 @@ class ProfileController:
 
 
     def update_profile(self,db: DBConnectionDep, user: User, body: schemas.UserProfileModel) -> User:
-        print(body)
-        print(user.username)
         user.email = body.email
         user.password = auth.auth.password.hash(password = body.password)
         db.commit()
