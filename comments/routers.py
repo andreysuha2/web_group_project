@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from app.db import DBConnectionDep
 from typing import List
 from comments import schemas
 from comments.dependencies import CommentsControllerDep, PhotoDep, CommentDep
-from app.services.auth import AuthDep
+from app.services.auth import AuthDep, auth
+from users.models import UserRoles
   
 
 comments_router = APIRouter(prefix="/photos/{photo_id}/comments", tags=['comments'])
@@ -22,6 +23,6 @@ async def update_comment(comment: CommentDep, controller: CommentsControllerDep,
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
     return await controller.update(comment, db, body)
 
-@comments_router.delete('/{comment_id}', response_model=schemas.CommentResponse)
+@comments_router.delete('/{comment_id}', response_model=schemas.CommentResponse, dependencies=[Depends(auth.role_not_in(UserRoles.USER.value))])
 async def delete_comment(comment: CommentDep, controller: CommentsControllerDep, db: DBConnectionDep):
     return await controller.remove(comment, db)
