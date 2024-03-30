@@ -29,7 +29,7 @@ class Photo(Base, TimestampsMixin):
 
     @hybrid_property
     def storage_path(self):
-        return f"{settings.app.STORAGE_FOLDER}/{self.user.user_id}/{self.name}"
+        return f"{settings.app.STORAGE_FOLDER}/{self.user.id}/{self.name}"
     
 class Tag(Base):
     __tablename__ = "tags"

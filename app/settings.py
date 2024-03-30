@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 from pathlib import Path
 import os
+import cloudinary
 
 load_dotenv(override=True)
 
@@ -51,12 +52,20 @@ class RedisSettings(BaseModel):
     DB: int = 0
     ENCODING: str = 'utf-8'
 
+class CloudinarySettings(BaseModel):
+    CLOUD_NAME: str = os.getenv("CLOUD_NAME"),
+    CLOUD_API_KEY: str = os.getenv("CLOUD_API_KEY"),
+    CLOUD_API_SECRET: str = os.getenv("CLOUD_API_SECRET")
+
+
+
 class Settings(BaseModel):
     app: AppSettings = AppSettings()
     db: DBSettings = DBSettings()
     token: TokenSettings = TokenSettings()
     photo: PhotoSettings = PhotoSettings()
     redis: RedisSettings = RedisSettings()
+    cloudinary: CloudinarySettings = CloudinarySettings()
 
 settings = Settings()
 
