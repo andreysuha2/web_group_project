@@ -24,6 +24,8 @@ class User(Base, TimestampsMixin):
     tokens: Mapped[List["Token"]] = relationship(back_populates="user")
     photos: Mapped[List["Photo"]] = relationship(back_populates="user")
     comments: Mapped[List["Comment"]] = relationship(back_populates="user")
+    banned: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
+
 
 class Token(Base):
     __tablename__ = "tokens"

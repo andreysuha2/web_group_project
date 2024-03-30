@@ -107,7 +107,6 @@ class Auth:
             raise self.credentionals_exception
         return await self.__generate_tokens(user, db)
         
-
     async def authenticate(self, credentials: OAuth2PasswordRequestForm, db: Session) -> schemas.TokenLoginResponse:
         user = await self.__get_user(credentials.username, db)
         if not self.validate(user, credentials):
@@ -154,6 +153,7 @@ class Auth:
         user = await self.__get_user(pyload["email"], db)
         if user is None:
             raise self.not_found_error
+            
         return user
         
 

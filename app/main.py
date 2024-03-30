@@ -3,7 +3,8 @@ from sqlalchemy import text
 from app.settings import settings
 from app.db import DBConnectionDep
 from datetime import datetime, UTC
-from users.routers import session_router, user_router
+from fastapi.middleware.cors import CORSMiddleware
+from users.routers import session_router, user_router, profile_router
 from photos.routers import photos_router
 from comments.routers import comments_router
 import uvicorn
@@ -12,7 +13,7 @@ app = FastAPI()
 
 base_router = APIRouter(tags=['base'])
 
-routers = [base_router, session_router, user_router, photos_router, comments_router]
+routers = [base_router, session_router, profile_router, user_router, photos_router, comments_router]
 
 @base_router.get("/")
 def status(db: DBConnectionDep):
