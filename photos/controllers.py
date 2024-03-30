@@ -181,21 +181,21 @@ class PhotosController:
             raise
 
 
-async def url_to_uploadfile(url: str) -> UploadFile:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        if response.status_code == 200:
-            # Створення тимчасового файлу
-            temp_file = NamedTemporaryFile(delete=False, suffix=".jpg")
-            async with aiofiles.open(temp_file.name, 'wb') as out_file:
-                await out_file.write(response.content)
-
-            # Оскільки UploadFile очікує файловий об'єкт, а не шлях,
-            # вам потрібно відкрити файл асинхронно
-            file_like = await aiofiles.open(temp_file.name, 'rb')
-
-            # Створення екземпляра UploadFile
-            # УВАГА: Після цього ви не зможете використати `temp_file` в якості контекстного менеджера,
-            # оскільки воно вже буде використано та закрите
-            upload_file = UploadFile(filename=temp_file.name, file=file_like)
-            return upload_file
+# async def url_to_uploadfile(url: str) -> UploadFile:
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(url)
+#         if response.status_code == 200:
+#             # Створення тимчасового файлу
+#             temp_file = NamedTemporaryFile(delete=False, suffix=".jpg")
+#             async with aiofiles.open(temp_file.name, 'wb') as out_file:
+#                 await out_file.write(response.content)
+#
+#             # Оскільки UploadFile очікує файловий об'єкт, а не шлях,
+#             # вам потрібно відкрити файл асинхронно
+#             file_like = await aiofiles.open(temp_file.name, 'rb')
+#
+#             # Створення екземпляра UploadFile
+#             # УВАГА: Після цього ви не зможете використати `temp_file` в якості контекстного менеджера,
+#             # оскільки воно вже буде використано та закрите
+#             upload_file = UploadFile(filename=temp_file.name, file=file_like)
+#             return upload_file
