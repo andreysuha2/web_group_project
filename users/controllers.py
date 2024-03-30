@@ -9,6 +9,7 @@ from users import schemas
 from datetime import datetime
 from app.db import DBConnectionDep
 from datetime import datetime
+from app.services import auth
 
 
 
@@ -73,3 +74,15 @@ class UsersController:
         return user_to_update
   
             
+            
+class ProfileController:
+    base_model = User
+
+
+    def update_profile(self,db: DBConnectionDep, user: User, body: schemas.UserProfileModel) -> User:
+        print(body)
+        print(user.username)
+        user.email = body.email
+        user.password = auth.auth.password.hash(password = body.password)
+        db.commit()
+        return user

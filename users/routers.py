@@ -7,17 +7,19 @@ from users import schemas
 from users.models import UserRoles, User
 from typing import Annotated, List
 from app.db import DBConnectionDep
-from users.controllers import SessionController, UsersController
+from users.controllers import SessionController, UsersController, ProfileController
 
 
 security = HTTPBearer()
 
 UsersControllerDep = Annotated[UsersController, Depends(UsersController)]
 SessionControllerDep = Annotated[SessionController, Depends(SessionController)]
+ProfileControllerDep = Annotated[ProfileController, Depends(ProfileController)]
 
 
 session_router = APIRouter(prefix="/session", tags=['session'])
 user_router = APIRouter(prefix="/users", tags=['users'])
+profile_router = APIRouter(prefix="/profile", tags=['profile'])
 
 @session_router.post('/', response_model=schemas.TokenLoginResponse)
 async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
@@ -49,11 +51,6 @@ async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='User already exist')
     body.password = auth.password.hash(body.password)
     user = await controller.create(body, db)
-    return user
-
-
-@user_router.get("/", response_model=schemas.UserResponse, status_code=status.HTTP_200_OK)
-async def read_self_user(user: AuthDep):
     return user
     
 
@@ -96,5 +93,13 @@ async def user_unban(db: DBConnectionDep, controller: UsersControllerDep, curren
     return controller.unban(db=db, user_id = user_id)
 
 
+@profile_router.get("/", response_model=schemas.UserResponse, status_code=status.HTTP_200_OK)
+async def read_self_user(user: AuthDep):
+    return user
+
+
+@profile_router.put("/", response_model=schemas.UserResponse, status_code=status.HTTP_200_OK)
+async def modify_self_user(db: DBConnectionDep, controller: ProfileControllerDep, current_user: AuthDep,  body: schemas.UserProfileModel):
+    return controller.update_profile(user=current_user, db=db, body=body)
 
 

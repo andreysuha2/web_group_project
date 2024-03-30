@@ -14,6 +14,10 @@ class UserModel(BaseModel):
     email: EmailStr
     created_at: datetime
 
+class UserProfileModel(BaseModel):
+    email: EmailStr
+    password : str = Field(min_length=6)
+
 
 class UserResponse(UserModel):
     id: int
