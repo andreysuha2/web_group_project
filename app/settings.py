@@ -53,8 +53,8 @@ class RedisSettings(BaseModel):
     ENCODING: str = 'utf-8'
 
 class CloudinarySettings(BaseModel):
-    CLOUD_NAME: str = os.getenv("CLOUD_NAME"),
-    CLOUD_API_KEY: str = os.getenv("CLOUD_API_KEY"),
+    CLOUD_NAME: str = os.getenv("CLOUD_NAME")
+    CLOUD_API_KEY: str = os.getenv("CLOUD_API_KEY")
     CLOUD_API_SECRET: str = os.getenv("CLOUD_API_SECRET")
 
 

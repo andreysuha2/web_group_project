@@ -14,8 +14,8 @@ from app.settings import settings
 from io import BytesIO
 
 cloudinary.config(
-    cloud_name=settings.cloudinary.CLOUD_NAME,
-    api_key=settings.cloudinary.CLOUD_API_KEY,
+    cloud_name=settings.cloudinary.CLOUD_NAME
+    api_key=settings.cloudinary.CLOUD_API_KEY
     api_secret=settings.cloudinary.CLOUD_API_SECRET
 )
 
