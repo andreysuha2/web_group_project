@@ -3,15 +3,15 @@ from datetime import datetime
 import aiofiles
 import os
 from fastapi import UploadFile, HTTPException
+from fastapi.responses import StreamingResponse
 from photos.models import Photo, Tag
 from photos.schemas import PhotoModel, PhotoResponse, TagResponse
 import logging
-import cloudinary.uploader
-import httpx
-from tempfile import NamedTemporaryFile
+import qrcode
 import cloudinary
 from pathlib import Path
 from app.settings import settings
+from io import BytesIO
 
 cloudinary.config(
     cloud_name=settings.cloudinary.CLOUD_NAME,
@@ -129,73 +129,21 @@ class PhotosController:
             logging.error(f"Error updating photo description for photo ID {photo_id} and user {user_id}: {e}")
             raise
 
-    async def crop_photo(self,
-                         photo_id: int,
-                         crop_width: int,
-                         crop_height: int,
-                         user_id: int):
-        logging.info(f"Starting to crop photo with ID {photo_id} for user {user_id}")
-
-        # Знайти фото в базі даних
-        photo = self.db.query(Photo).filter(Photo.id == photo_id, Photo.user_id == user_id).first()
-        if not photo:
-            logging.error(f"Photo with ID {photo_id} not found or does not belong to user {user_id}")
-            raise HTTPException(status_code=404, detail="Photo not found or does not belong to the user")
-
-        # Виклик Cloudinary для обрізки фото
+    async def generate_qr_code(self, url: str) -> StreamingResponse:
+        """Генерує QR-код для заданого URL."""
         try:
-            logging.info(f"Cropping photo {photo.name} with width {crop_width} and height {crop_height}")
-            result = cloudinary.uploader.upload(photo.storage_path,
-                                                crop="limit", width=crop_width, height=crop_height,
-                                                public_id=photo.name)
-            cropped_image_url = result.get('url')
-            logging.info(f"Photo cropped successfully. URL: {cropped_image_url}")
+            qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+            qr.add_data(url)
+            qr.make(fit=True)
+
+            img = qr.make_image(fill_color="black", back_color="white")
+            img_bytes = BytesIO()
+            img.save(img_bytes)
+            img_bytes.seek(0)
+
+            logging.info(f"QR-код успішно створено для URL: {url}")
+            return StreamingResponse(img_bytes, media_type="image/png")
         except Exception as e:
-            logging.error(f"Error cropping photo {photo_id}: {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
+            logging.error(f"Помилка при створенні QR-коду для URL: {url}. Помилка: {str(e)}")
+            raise HTTPException(status_code=500, detail="Помилка при створенні QR-коду")
 
-        # Перетворення URL в UploadFile
-        try:
-            upload_file = await url_to_uploadfile(cropped_image_url)
-            logging.info(f"Converted cropped image URL to UploadFile successfully")
-        except Exception as e:
-            logging.error(f"Error converting URL to UploadFile: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to convert URL to UploadFile")
-
-        # Підготовка `photo_data` з отриманих даних
-        photo_data = PhotoModel(
-            name=photo.name,
-            title=photo.title,
-            description=photo.description,
-            tags=[TagModel(name=tag.name) for tag in photo.tags],
-            user_id=photo.user_id
-        )
-
-        # Створення нового фото з обрізаним зображенням
-        try:
-            new_photo = await self.create_photo(photo_data, upload_file)
-            logging.info(f"New cropped photo created successfully for user {user_id}")
-            return new_photo
-        except Exception as e:
-            logging.error(f"Error creating new cropped photo: {str(e)}")
-            raise
-
-
-async def url_to_uploadfile(url: str) -> UploadFile:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        if response.status_code == 200:
-            # Створення тимчасового файлу
-            temp_file = NamedTemporaryFile(delete=False, suffix=".jpg")
-            async with aiofiles.open(temp_file.name, 'wb') as out_file:
-                await out_file.write(response.content)
-
-            # Оскільки UploadFile очікує файловий об'єкт, а не шлях,
-            # вам потрібно відкрити файл асинхронно
-            file_like = await aiofiles.open(temp_file.name, 'rb')
-
-            # Створення екземпляра UploadFile
-            # УВАГА: Після цього ви не зможете використати `temp_file` в якості контекстного менеджера,
-            # оскільки воно вже буде використано та закрите
-            upload_file = UploadFile(filename=temp_file.name, file=file_like)
-            return upload_file

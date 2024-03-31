@@ -25,7 +25,7 @@ class Photo(Base, TimestampsMixin):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     user: Mapped["User"] = relationship(back_populates="photos")
     tags: Mapped[List["Tag"]] = relationship(back_populates="photos", secondary=photo_tag_table)
-    comments: Mapped[List["Comment"]] = relationship(back_populates="photo")
+    comments: Mapped[List["Comment"]] = relationship(back_populates="photo", cascade="all, delete-orphan")
 
     @hybrid_property
     def storage_path(self):
