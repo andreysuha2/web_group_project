@@ -1,5 +1,15 @@
-version: '1'
+version: '2'
 services:
+  app:
+    build: .
+    container_name: web_group_project_app
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
   postgres:
     image: postgres:latest
     container_name: web_group_project_postgres

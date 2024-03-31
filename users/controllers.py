@@ -25,7 +25,11 @@ class SessionController:
         db.commit()
     
     async def create(self, body: schemas.UserCreationModel, db: Session) -> base_model:
-        user = self.base_model(**body.model_dump()) 
+        user_role = UserRoles.USER
+        if empty_db:
+            user = self.base_model(**body.model_dump(), role=user_role)
+        else:
+            user = self.base_model(**body.model_dump())
         # print("========================================" , user.email, user.username)
         db.add(user)
         db.commit()

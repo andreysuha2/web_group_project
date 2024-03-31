@@ -23,6 +23,6 @@ async def update_comment(comment: CommentDep, controller: CommentsControllerDep,
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
     return await controller.update(comment, db, body)
 
-@comments_router.delete('/{comment_id}', response_model=schemas.CommentResponse, dependencies=[Depends(auth.role_not_in(UserRoles.USER.value))])
+@comments_router.delete('/{comment_id}', response_model=schemas.CommentResponse, dependencies=[Depends(auth.role_not_in([UserRoles.USER.value]))])
 async def delete_comment(comment: CommentDep, controller: CommentsControllerDep, db: DBConnectionDep):
     return await controller.remove(comment, db)
