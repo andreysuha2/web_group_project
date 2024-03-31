@@ -1,6 +1,7 @@
 from email import message
 from fastapi import APIRouter, status, Depends, HTTPException, Security, BackgroundTasks, Request, UploadFile, File, Response
 from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import or_
 from app.services.auth import auth, AuthDep
 from fastapi.responses import FileResponse
 from users import schemas
@@ -22,8 +23,8 @@ user_router = APIRouter(prefix="/users", tags=['users'])
 profile_router = APIRouter(prefix="/profile", tags=['profile'])
 
 @session_router.post('/', response_model=schemas.TokenLoginResponse)
-async def login(controller: SessionControllerDep, db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
-    if db.query(User.banned).filter(User.email == body.username).first()[0] is not None:
+async def login(db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
+    if db.query(User).filter(or_(User.email == body.username, User.username == body.username), User.banned != None).first() is not None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='User banned')
     result =  await auth.authenticate(body, db)
     return result
