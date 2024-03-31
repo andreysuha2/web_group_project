@@ -43,6 +43,10 @@ class UsersController:
         return db.query(self.base_model).filter(self.base_model.id == user_id).first()
 
 
+    def get_user_by_name(self, user_name: str, db: DBConnectionDep) -> User | None:
+        return db.query(self.base_model).filter(self.base_model.username == user_name).first()
+
+
     def update_role(self, user: User, db: DBConnectionDep, new_role: str, user_id: int) -> User:
         user_to_update = db.query(self.base_model).filter(self.base_model.id == user_id).first()
         if user_to_update is None:

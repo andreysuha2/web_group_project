@@ -51,7 +51,7 @@ class Token:
         return { "token": token, "expired_at": expired, "scope": scope.value }
     
     async def decode(self, token: str, scope: TokenScopes) -> dict:
-        print("token", token)
+        # print("token", token)
         try:
             payload = self.coder.decode(token, self.secret, algorithms=[self.config.ALGORITHM])
             if payload['scope'] == scope.value:
