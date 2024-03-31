@@ -25,8 +25,10 @@ class SessionController:
         db.commit()
     
     async def create(self, body: schemas.UserCreationModel, db: Session) -> base_model:
-        user = self.base_model(**body.model_dump()) 
-        # print("========================================" , user.email, user.username)
+        if db.query(self.base_model).count() == 0:
+            user = self.base_model(**body.model_dump(), role=UserRoles.ADMIN)
+        else:
+            user = self.base_model(**body.model_dump()) 
         db.add(user)
         db.commit()
         db.refresh(user)
