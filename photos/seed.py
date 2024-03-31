@@ -18,9 +18,20 @@ PHOTOS_EXTS = ['jpg', 'png', 'jpeg', 'webp']
 
 def create_tags(count: int) -> List[dict]:
     tags = []
+
+
+    def create_tag():
+        words = randint(1,3)
+        word = ""
+        for _ in range(words):
+            word = f"{word}_{fake_data.word()}"
+        word = word[1:]
+        if word in tags:
+            return create_tag()
+        return word
     for _ in range(count):
-        tags.append({ "name": fake_data.word() })
-    return tags
+        tags.append(create_tag())
+    return [ { "name": tag } for tag in tags ]
 
 def upload_tags(db: Session, tags_data: List[dict]) -> None:
     for tag_data in tags_data:

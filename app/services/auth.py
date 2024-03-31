@@ -14,6 +14,7 @@ from users import schemas
 from dataclasses import dataclass
 from typing import Callable, List, Annotated
 from app.services.redis import redis_client
+from functools import wraps
 
 class TokenScopes(Enum):
     ACCESS='access_token'
@@ -50,12 +51,14 @@ class Token:
         return { "token": token, "expired_at": expired, "scope": scope.value }
     
     async def decode(self, token: str, scope: TokenScopes) -> dict:
+        print("token", token)
         try:
             payload = self.coder.decode(token, self.secret, algorithms=[self.config.ALGORITHM])
             if payload['scope'] == scope.value:
                 return payload
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid scope for token")
         except self.coder.error as e:
+            print(e)
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
 
     async def create_access(self, data: dict, expires_delta: Optional[float] = None) -> schemas.TokenModel:
@@ -77,6 +80,7 @@ class Auth:
     not_found_error = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
     invalid_credential_error = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid username or password')
     invalid_refresh_token_error = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid refresh token')
+    forbidden_access_error = HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Forbidden')
     credentionals_exception=HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -94,6 +98,20 @@ class Auth:
             return False
         return True
     
+    async def role_in(self, roles: List[str]):
+        async def checker(token: str = Depends(self.oauth2_scheme)):
+            payload = await self.token.decode_access(token)
+            if payload.get('role', None) not in roles or redis_client.get(f"{settings.token.BLACK_LIST_PREFIX}{token}") == "1":
+                raise self.forbidden_access_error
+        return checker
+    
+    def role_not_in(self, roles: List[str]):
+        async def checker(token: str = Depends(self.oauth2_scheme)):
+            payload = await self.token.decode_access(token)
+            if payload.get('role', None) in roles or redis_client.get(f"{settings.token.BLACK_LIST_PREFIX}{token}") == "1":
+                raise self.forbidden_access_error
+        return checker
+
     async def refresh(self, refresh_token_str: str, db: Session) -> schemas.TokenLoginResponse:
         payload = await self.token.decode_refresh(refresh_token_str)
         refresh_token = db.query(self.TokensModel).filter(
@@ -107,7 +125,6 @@ class Auth:
             raise self.credentionals_exception
         return await self.__generate_tokens(user, db)
         
-
     async def authenticate(self, credentials: OAuth2PasswordRequestForm, db: Session) -> schemas.TokenLoginResponse:
         user = await self.__get_user(credentials.username, db)
         if not self.validate(user, credentials):
@@ -122,7 +139,6 @@ class Auth:
             db.delete(refresh_token)
             db.commit()
         return {"message": "Logout successful"}
-
     
     async def __generate_tokens(self, user: UserModel, db: Session) -> schemas.TokenLoginResponse:
         refresh_token = await self.token.create_refresh({"email": user.email})
@@ -130,7 +146,7 @@ class Auth:
         user.tokens.append(token)
         db.commit()
         db.refresh(token)
-        access_token = await self.token.create_access({"email": user.email, "refresh": token.id})
+        access_token = await self.token.create_access({"email": user.email, "role": user.role.value, "refresh": token.id})
         return { 
             "access_token": access_token["token"], 
             "access_expired_at": access_token["expired_at"] , 
@@ -154,6 +170,7 @@ class Auth:
         user = await self.__get_user(pyload["email"], db)
         if user is None:
             raise self.not_found_error
+            
         return user
         
 
