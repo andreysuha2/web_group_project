@@ -39,11 +39,6 @@ async def refresh_token(db: DBConnectionDep, credentials: HTTPAuthorizationCrede
     return await auth.refresh(credentials.credentials, db)
 
 
-@user_router.get("/all", response_model=List[schemas.UserResponse]|None, status_code=status.HTTP_200_OK)
-async def users_list(controller: UsersControllerDep, db: DBConnectionDep, user: AuthDep):
-    return controller.get_users(db)
-
-
 @user_router.post('/', response_model=schemas.UserResponse|None)
 async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks: BackgroundTasks, request: Request, body: schemas.UserCreationModel):
     exist_user = await controller.get_user(email=body.email, db=db)
@@ -52,14 +47,26 @@ async def singup(controller: SessionControllerDep, db: DBConnectionDep, bg_tasks
     body.password = auth.password.hash(body.password)
     user = await controller.create(body, db)
     return user
-    
 
-@user_router.get("/{user_id}", response_model=schemas.UserSelfModel|None, status_code=status.HTTP_200_OK)
-async def read_user_by_id(user_id: int, db: DBConnectionDep, user: AuthDep,  controller: UsersControllerDep):
-    if db.query(User).filter(User.id == user_id).first() is None:
+
+@user_router.get("/all", response_model=List[schemas.UserResponse]|None, status_code=status.HTTP_200_OK)
+async def users_list(controller: UsersControllerDep, db: DBConnectionDep, user: AuthDep):
+    return controller.get_users(db)
+
+
+@user_router.get("/{username_or_id}", response_model=schemas.UserSelfModel|None, status_code=status.HTTP_200_OK)
+async def read_user_by_name_or_id(user_name: str|int, db: DBConnectionDep, user: AuthDep,  controller: UsersControllerDep):
+    try:
+        user_id = int(user_name)
+        if controller.get_user_by_id(user_id=user_id, db=db) is None:
+            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
+        return controller.get_user_by_id(user_id=user_id, db=db)
+    except:
+        pass
+    if controller.get_user_by_name(user_name=user_name, db=db) is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
-    return  controller.get_user_by_id(user_id=user_id, db=db)
-    
+    return controller.get_user_by_name(user_name=user_name, db=db)
+
 
 @user_router.patch("/{user_id}/role", response_model=schemas.UserResponse|None, status_code=status.HTTP_200_OK)
 async def update_role(db: DBConnectionDep, controller: UsersControllerDep, current_user: AuthDep, new_role:str, user_id: int):
