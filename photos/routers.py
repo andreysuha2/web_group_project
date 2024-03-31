@@ -140,7 +140,7 @@ async def admin_delete_photo(photo_id: int,
                              db: DBConnectionDep,
                              user: AuthDep):
 
-    if str(user.role) == "UserRoles.ADMIN":
+
 
         controller = PhotosController(db)
         result = await controller.delete_photo(photo_id=photo_id, user_id=user_id)
@@ -151,13 +151,14 @@ async def admin_delete_photo(photo_id: int,
         return "Access denied"
 
 
-@photos_router.put("/admin/{user_id}/{photo_id}", status_code=200)
+@photos_router.put("/admin/{user_id}/{photo_id}", status_code=200,
+                   dependencies=[Depends(auth.role_not_in(UserRoles.USER.value))])
 async def admin_update_photo_description(photo_id: int,
                                          user_id: int,
                                          db: DBConnectionDep,
                                          user: AuthDep,
                                          photo_update: str = Form(),):
-    if str(user.role) == "UserRoles.ADMIN":
+
         controller = PhotosController(db)
         updated_photo = await controller.update_photo_description(photo_id=photo_id, user_id=user_id,
                                                                   new_description=photo_update)
@@ -166,7 +167,8 @@ async def admin_update_photo_description(photo_id: int,
         return updated_photo
 
 
-@photos_router.post("/admin/{user_id}", response_model=schemas.PhotoResponse)
+@photos_router.post("/admin/{user_id}", response_model=schemas.PhotoResponse,
+                    dependencies=[Depends(auth.role_not_in(UserRoles.USER.value))])
 async def admin_upload_photo(
         user: AuthDep,
         db: DBConnectionDep,
@@ -177,7 +179,7 @@ async def admin_upload_photo(
         file: UploadFile = File(),
         ):
     logging.info("admin_upload_photo start")
-    if str(user.role) == "UserRoles.ADMIN":
+
         controller = PhotosController(db)
 
         tag_models = []
