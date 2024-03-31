@@ -2,7 +2,8 @@ from typing import List
 from pydantic import Field, BaseModel, EmailStr
 from datetime import datetime
 from users import models
-from photos.schemas import PhotoModel
+from photos.schemas import PhotoModel 
+
 
 class UserCreationModel(BaseModel):
     username: str = Field(min_length=5, max_length=20, example="username")
@@ -29,6 +30,10 @@ class UserResponse(UserModel):
 
 class UserSelfModel(UserResponse):
     photos: List[PhotoModel]
+
+    @property
+    def photos_count(self) -> int:
+        return len(self.photos)
 
 
 class TokenPairModel(BaseModel):
