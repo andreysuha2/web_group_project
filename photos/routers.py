@@ -14,7 +14,7 @@ from fastapi.responses import Response, StreamingResponse
 PhotoContollerDep = Annotated[PhotosController, Depends(PhotosController)]
 
 photos_router = APIRouter(prefix="/photos", tags=['photos'])
-
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 max_tags = settings.photo.MAX_TAGS
 
 @photos_router.get('/', response_model=List[schemas.PhotoResponse])
@@ -30,10 +30,8 @@ async def upload_photo(
         description: str = Form(None),
         tags: str = Form(None),
         file: UploadFile = File(),
-):
+        ):
     controller = PhotosController(db)
-
-    logging.info(max_tags)
 
     tag_models = []
     if tags:  # Перевіряємо, чи було передано теги
@@ -50,7 +48,7 @@ async def upload_photo(
     )
     logging.info(f'{photo_model} to the controller')
     # Виклик методу контролера для створення фотографії
-    photo_response = await controller.create_photo(photo_data=photo_model, file=file)
+    photo_response = await controller.upload_photo(photo=photo_model, file=file)
     logging.info(f"{photo_response} from controller")
 
     # Повернення відповіді
@@ -98,23 +96,6 @@ async def get_photo(
         raise HTTPException(status_code=500, detail=f"Error reading photo: {e}")
 
 
-@photos_router.post("/upload/")
-async def upload_image(photo_id: int,
-                       crop_width: int,
-                        crop_height: int,
-
-                        user: AuthDep,
-                        db: DBConnectionDep,
-                        ):
-
-    controller = PhotosController(db)
-
-    photo_response = await controller.crop_photo(photo_id, crop_height, crop_width, user.id)
-
-    # Повернення відповіді
-    return photo_response
-
-
 @photos_router.get("/qr/{photo_id}", response_class=StreamingResponse)
 async def get_photo_qr_code(photo_id: int, db: DBConnectionDep):
     controller = PhotosController(db=db)
@@ -126,7 +107,7 @@ async def get_photo_qr_code(photo_id: int, db: DBConnectionDep):
 
     # Генеруємо URL для фотографії
     # Вам потрібно замінити це на фактичний шлях до вашої фотографії в додатку
-    photo_url = f"http://127.0.0.1:8000/api/photos/{photo_id}"
+    photo_url = f"{photo.name}"
 
     # Викликаємо метод контролера для генерації QR-коду
     return await controller.generate_qr_code(url=photo_url)
@@ -142,13 +123,12 @@ async def admin_delete_photo(photo_id: int,
 
 
 
-        controller = PhotosController(db)
-        result = await controller.delete_photo(photo_id=photo_id, user_id=user_id)
-        if not result:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Photo not found or not owned by user")
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
-    else:
-        return "Access denied"
+    controller = PhotosController(db)
+    result = await controller.delete_photo(photo_id=photo_id, user_id=user_id)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Photo not found or not owned by user")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 
 
 @photos_router.put("/admin/{user_id}/{photo_id}", status_code=200,
@@ -159,12 +139,12 @@ async def admin_update_photo_description(photo_id: int,
                                          user: AuthDep,
                                          photo_update: str = Form(),):
 
-        controller = PhotosController(db)
-        updated_photo = await controller.update_photo_description(photo_id=photo_id, user_id=user_id,
-                                                                  new_description=photo_update)
-        if not updated_photo:
-            raise HTTPException(status_code=404, detail="Photo not found or not allowed to edit")
-        return updated_photo
+    controller = PhotosController(db)
+    updated_photo = await controller.update_photo_description(photo_id=photo_id, user_id=user_id,
+                                                              new_description=photo_update)
+    if not updated_photo:
+        raise HTTPException(status_code=404, detail="Photo not found or not allowed to edit")
+    return updated_photo
 
 
 @photos_router.post("/admin/{user_id}", response_model=schemas.PhotoResponse,
@@ -179,26 +159,24 @@ async def admin_upload_photo(
         file: UploadFile = File(),
         ):
     logging.info("admin_upload_photo start")
+    controller = PhotosController(db)
+    tag_models = []
+    if tags:  # Перевіряємо, чи було передано теги
+        # Розділити теги за пробілами, створити список об'єктів TagModel, і взяти перші N тегів
+        tag_models = [schemas.TagModel(name=tag.strip()) for tag in tags.split(" ") if tag.strip()][:max_tags]
 
-        controller = PhotosController(db)
+    # Створення об'єкта PhotoModel для передачі в контролер
+    photo_model = schemas.PhotoModel(
+        name=file.filename,
+        title=title,
+        description=description,
+        tags=tag_models,
+        user_id=user_id
+    )
+    logging.info(f'{photo_model} to the controller')
+    # Виклик методу контролера для створення фотографії
+    photo_response = await controller.create_photo(photo_data=photo_model, file=file)
+    logging.info(f"{photo_response} from controller")
 
-        tag_models = []
-        if tags:  # Перевіряємо, чи було передано теги
-            # Розділити теги за пробілами, створити список об'єктів TagModel, і взяти перші N тегів
-            tag_models = [schemas.TagModel(name=tag.strip()) for tag in tags.split(" ") if tag.strip()][:max_tags]
-
-        # Створення об'єкта PhotoModel для передачі в контролер
-        photo_model = schemas.PhotoModel(
-            name=file.filename,
-            title=title,
-            description=description,
-            tags=tag_models,
-            user_id=user_id
-        )
-        logging.info(f'{photo_model} to the controller')
-        # Виклик методу контролера для створення фотографії
-        photo_response = await controller.create_photo(photo_data=photo_model, file=file)
-        logging.info(f"{photo_response} from controller")
-
-        # Повернення відповіді
-        return photo_response
+    # Повернення відповіді
+    return photo_response

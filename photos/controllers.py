@@ -8,16 +8,11 @@ from photos.models import Photo, Tag
 from photos.schemas import PhotoModel, PhotoResponse, TagResponse
 import logging
 import qrcode
-import cloudinary
+import cloudinary.uploader
 from pathlib import Path
 from app.settings import settings
 from io import BytesIO
 
-cloudinary.config(
-    cloud_name=settings.cloudinary.CLOUD_NAME
-    api_key=settings.cloudinary.CLOUD_API_KEY
-    api_secret=settings.cloudinary.CLOUD_API_SECRET
-)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -26,70 +21,11 @@ class PhotosController:
 
     def __init__(self, db):
         self.db = db
-
-    async def create_photo(self, photo_data: PhotoModel, file: UploadFile):
-        print('до')
-        file_name = await self.save_photo(file, photo_data)
-        print('після')
-
-        new_photo = Photo(
-            name=file_name,
-            title=photo_data.title,
-            description=photo_data.description,
-            user_id=photo_data.user_id,
-
+        cloudinary.config(
+            cloud_name=settings.cloudinary.CLOUD_NAME,
+            api_key=settings.cloudinary.CLOUD_API_KEY,
+            api_secret=settings.cloudinary.CLOUD_API_SECRET
         )
-        self.db.add(new_photo)
-        #print(new_photo.__dict__)
-        #self.db.flush()  # Отримати id для new_photo
-
-        # Обробка тегів
-        if photo_data.tags:
-            for tag_data in photo_data.tags:
-                if tag_data.name:  # Переконатися, що ім'я тега визначено і не пусте
-                    tag = self.db.query(Tag).filter_by(name=tag_data.name).first()
-                    if not tag:
-                        tag = Tag(name=tag_data.name)
-                        self.db.add(tag)
-                        self.db.flush()  # Отримати id для tag
-                    new_photo.tags.append(tag)
-
-        self.db.commit()
-
-        return PhotoResponse(
-            id=new_photo.id,
-            name=new_photo.name,
-            title=new_photo.title,
-            description=new_photo.description,
-            tags=[TagResponse(id=tag.id, name=tag.name) for tag in new_photo.tags],
-            user_id=new_photo.user_id
-        )
-
-    @staticmethod
-    async def save_photo(file: UploadFile, photo_data: PhotoModel) -> str:
-        print(file)
-        try:
-            # Create a directory named with today's date
-            date_today = datetime.now().strftime('%Y-%m-%d')
-            directory = f'{settings.app.STORAGE_FOLDER}/{photo_data.user_id}'
-
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-
-            # Save the file with the date and time included in the filename
-            date_time_now = datetime.now().strftime('%H%M%S%f')
-            filename = f"{date_time_now}_{Path(file.filename).name}"
-            file_location = f"{directory}/{filename}"
-
-            async with aiofiles.open(file_location, "wb") as file_object:
-
-                content = await file.read()
-                await file_object.write(content)
-
-            return filename
-
-        except Exception as e:
-            return {"error": str(e)}
 
     async def delete_photo(self, photo_id: int, user_id: int):
         logging.info(f"Attempting to delete photo with ID {photo_id} for user {user_id}")
@@ -99,14 +35,13 @@ class PhotosController:
             logging.error(f"Photo with ID {photo_id} not found or doesn't belong to user {user_id}")
             raise HTTPException(status_code=404, detail="Photo not found or doesn't belong to the user")
 
+        parts = photo.name.split('/')
+        public_id = parts[-2] + '/' + parts[-1].split('.')[0]
         try:
-            if os.path.exists(photo.storage_path):
-                logging.info(f"Deleting file at {photo.storage_path}")
-                os.remove(photo.storage_path)
+            response = cloudinary.uploader.destroy(public_id)
+            print(response)
         except Exception as e:
-            logging.error(f"Error deleting file at {photo.storage_path}: {e}")
-            # В залежності від вашої логіки обробки помилок, ви можете вирішити продовжити видалення з бази даних
-            # або повернути помилку. Тут ми продовжуємо процес.
+            print(f"Error deleting file from Cloudinary: {e}")
 
         self.db.delete(photo)
         self.db.commit()
@@ -129,6 +64,59 @@ class PhotosController:
             logging.error(f"Error updating photo description for photo ID {photo_id} and user {user_id}: {e}")
             raise
 
+    async def upload_photo(self, photo: PhotoModel, file: UploadFile):
+        logging.info("Starting photo upload process")
+
+        file_contents = await file.read()
+
+        try:
+            logging.info("Uploading photo to Cloudinary")
+            result = cloudinary.uploader.upload(file_contents, folder=photo.user_id, resource_type='auto')
+            uploaded_image_url = result.get('url')
+            logging.info(f"Photo uploaded successfully to Cloudinary. URL: {uploaded_image_url}")
+        except Exception as e:
+            logging.exception("Error uploading photo to Cloudinary", exc_info=e)
+            raise HTTPException(status_code=500, detail=str(e))
+
+        try:
+            new_photo = Photo(
+                name=uploaded_image_url,
+                title=photo.title,
+                description=photo.description,
+                user_id=photo.user_id,
+            )
+
+            self.db.add(new_photo)
+            logging.info(f"Photo added successfully to DB. URL: {uploaded_image_url}")
+
+            if photo.tags:
+                for tag_data in photo.tags:
+                    if tag_data.name:
+                        tag = self.db.query(Tag).filter_by(name=tag_data.name).first()
+                        if not tag:
+                            tag = Tag(name=tag_data.name)
+                            self.db.add(tag)
+                            self.db.flush()
+                        new_photo.tags.append(tag)
+
+            self.db.commit()
+            logging.info("Photo and tags saved to database successfully")
+
+            response = PhotoResponse(
+                id=new_photo.id,
+                name=new_photo.name,
+                title=new_photo.title,
+                description=new_photo.description,
+                tags=[TagResponse(id=tag.id, name=tag.name) for tag in new_photo.tags],
+                user_id=new_photo.user_id
+            )
+            logging.info("Photo upload process completed successfully")
+            return response
+        except Exception as e:
+            logging.exception("Error saving photo and tags to database", exc_info=e)
+            self.db.rollback()
+            raise HTTPException(status_code=500, detail="Failed to save photo and tags to database")
+
     async def generate_qr_code(self, url: str) -> StreamingResponse:
         """Генерує QR-код для заданого URL."""
         try:
@@ -146,4 +134,3 @@ class PhotosController:
         except Exception as e:
             logging.error(f"Помилка при створенні QR-коду для URL: {url}. Помилка: {str(e)}")
             raise HTTPException(status_code=500, detail="Помилка при створенні QR-коду")
-
