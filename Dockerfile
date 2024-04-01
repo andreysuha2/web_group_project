@@ -1,7 +1,9 @@
 FROM python:3.11-alpine
 
-ENV APP_HOME=/app \
-    POETRY_VERSION=1.7.1
+ENV APP_HOME=/photoshopper \
+    POETRY_VERSION=1.7.1 
+
+ENV PYTHONPATH=${APP_HOME}:$PYTHONPATH
 
 WORKDIR $APP_HOME
 
@@ -15,10 +17,9 @@ RUN \
     poetry install --no-root && \
     apk --purge del .build-deps
 
-RUN \
+CMD \
+    sleep 10 && \
     cd ./app && \
     poetry run alembic upgrade head && \
     cd .. && \
-    poetry run python -m ./app/cli.py seed
-
-ENTRYPOINT [ "poetry", "run", "python", "-m", "app.main" ]
+    poetry run python ./app/main.py

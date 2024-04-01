@@ -1,15 +1,5 @@
 version: '2'
 services:
-  app:
-    build: .
-    container_name: web_group_project_app
-    ports:
-      - "${APP_PORT}:${APP_PORT}"
-    develop:
-      watch:
-        - action: sync
-          path: .
-          target: /app
   postgres:
     image: postgres:latest
     container_name: web_group_project_postgres
@@ -25,6 +15,18 @@ services:
     ports:
       - "${REDIS_PORT}:6379"
       - "${REDIS_GUI_PORT}:8001"
+  app:
+    build: .
+    depends_on:
+      - postgres
+    container_name: web_group_project_app
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /photoshopper
 networks:
   network1:
     external: true
