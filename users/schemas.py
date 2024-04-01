@@ -32,10 +32,10 @@ class UserResponse(UserModel):
 
 
 class UserSelfModel(UserResponse):
-    photo_count: int = Field(..., alias="photos")
-
-    class Config:
-        allow_population_by_field_name = True
+    photos: int = Field(List[PhotoModel])
+    # @property
+    # def photo_count(self) -> int:
+    #     return len(self.photos)
 
 
 class TokenPairModel(BaseModel):
