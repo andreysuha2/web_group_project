@@ -1,16 +1,13 @@
-from email import message
-from sqlalchemy import select
-from fastapi import  status
-from typing import List, Optional
-from users.models import User
-from users.models import UserRoles
-from sqlalchemy.orm import Session
-from users import schemas
-from datetime import datetime
-from app.db import DBConnectionDep
-from datetime import datetime
-from app.services import auth
 
+from sqlalchemy import select
+from datetime import datetime
+from typing import List, Optional
+from sqlalchemy.orm import Session
+
+from users import schemas
+from app.services import auth
+from app.db import DBConnectionDep
+from users.models import UserRoles, User
 
 
 class SessionController:

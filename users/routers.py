@@ -1,13 +1,13 @@
-from email import message
-from fastapi import APIRouter, status, Depends, HTTPException, Security, BackgroundTasks, Request, UploadFile, File, Response
-from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
+
 from sqlalchemy import or_
-from app.services.auth import auth, AuthDep
-from fastapi.responses import FileResponse
-from users import schemas
-from users.models import UserRoles, User
 from typing import Annotated, List
+from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import APIRouter, status, Depends, HTTPException, Security, BackgroundTasks, Request
+
+from users import schemas
 from app.db import DBConnectionDep
+from users.models import UserRoles, User
+from app.services.auth import auth, AuthDep
 from users.controllers import SessionController, UsersController, ProfileController
 
 
@@ -21,6 +21,7 @@ ProfileControllerDep = Annotated[ProfileController, Depends(ProfileController)]
 session_router = APIRouter(prefix="/session", tags=['session'])
 user_router = APIRouter(prefix="/users", tags=['users'])
 profile_router = APIRouter(prefix="/profile", tags=['profile'])
+
 
 @session_router.post('/', response_model=schemas.TokenLoginResponse)
 async def login(db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
