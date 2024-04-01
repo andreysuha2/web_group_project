@@ -17,10 +17,6 @@ photos_router = APIRouter(prefix="/photos", tags=['photos'])
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 max_tags = settings.photo.MAX_TAGS
 
-@photos_router.get('/', response_model=List[schemas.PhotoResponse])
-async def photos_list(user: AuthDep, controller: PhotoContollerDep, db: DBConnectionDep, q: str = '', skip: int = 0, limit: int = 100):
-    pass
-
 
 @photos_router.post("/", response_model=schemas.PhotoResponse)
 async def upload_photo(
@@ -96,7 +92,7 @@ async def get_photo(
         raise HTTPException(status_code=500, detail=f"Error reading photo: {e}")
 
 
-@photos_router.get("/qr/{photo_id}", response_class=StreamingResponse)
+@photos_router.post("/qr/{photo_id}", response_class=StreamingResponse)
 async def get_photo_qr_code(photo_id: int, db: DBConnectionDep):
     controller = PhotosController(db=db)
 
@@ -121,14 +117,11 @@ async def admin_delete_photo(photo_id: int,
                              db: DBConnectionDep,
                              user: AuthDep):
 
-
-
     controller = PhotosController(db)
     result = await controller.delete_photo(photo_id=photo_id, user_id=user_id)
     if not result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Photo not found or not owned by user")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
 
 
 @photos_router.put("/admin/{user_id}/{photo_id}", status_code=200,
@@ -175,7 +168,7 @@ async def admin_upload_photo(
     )
     logging.info(f'{photo_model} to the controller')
     # Виклик методу контролера для створення фотографії
-    photo_response = await controller.create_photo(photo_data=photo_model, file=file)
+    photo_response = await controller.upload_photo(photo=photo_model, file=file)
     logging.info(f"{photo_response} from controller")
 
     # Повернення відповіді

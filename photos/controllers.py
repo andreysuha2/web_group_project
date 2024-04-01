@@ -1,7 +1,3 @@
-
-from datetime import datetime
-import aiofiles
-import os
 from fastapi import UploadFile, HTTPException
 from fastapi.responses import StreamingResponse
 from photos.models import Photo, Tag
@@ -9,7 +5,6 @@ from photos.schemas import PhotoModel, PhotoResponse, TagResponse
 import logging
 import qrcode
 import cloudinary.uploader
-from pathlib import Path
 from app.settings import settings
 from io import BytesIO
 
@@ -35,8 +30,7 @@ class PhotosController:
             logging.error(f"Photo with ID {photo_id} not found or doesn't belong to user {user_id}")
             raise HTTPException(status_code=404, detail="Photo not found or doesn't belong to the user")
 
-        parts = photo.name.split('/')
-        public_id = parts[-2] + '/' + parts[-1].split('.')[0]
+        public_id = extract_public_id_from_url(photo.name)
         try:
             response = cloudinary.uploader.destroy(public_id)
             print(response)
@@ -134,3 +128,10 @@ class PhotosController:
         except Exception as e:
             logging.error(f"Помилка при створенні QR-коду для URL: {url}. Помилка: {str(e)}")
             raise HTTPException(status_code=500, detail="Помилка при створенні QR-коду")
+
+
+def extract_public_id_from_url(url):
+
+    parts = url.split('/')
+    public_id = parts[-2] + '/' + parts[-1].split('.')[0]
+    return public_id
