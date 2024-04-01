@@ -1,10 +1,11 @@
 import logging
 from app.settings import settings
-from fastapi import APIRouter, Depends, UploadFile, File, Form
+from fastapi import APIRouter, Depends, UploadFile, File, Form, Query
 from app.db import DBConnectionDep
 from typing import Annotated, List
 from photos import schemas, models
 from photos.controllers import PhotosController
+from photos.Cloudinary_controller import CloudinaryController, ImageAction
 from app.services.auth import AuthDep, auth
 from users.models import UserRoles
 from fastapi import HTTPException, status
@@ -173,3 +174,31 @@ async def admin_upload_photo(
 
     # Повернення відповіді
     return photo_response
+
+
+@photos_router.put("/react/{photo_id}", status_code=200)
+async def update_photo_description(
+                        photo_id: int,
+                        user: AuthDep,
+                        db: DBConnectionDep,
+                        x: int,
+                        y: int,
+                        action: ImageAction = Query(..., description="Виберіть дію, яку потрібно виконати з зображенням:"),
+
+                        ):
+    controller = CloudinaryController(db)
+
+    if action == ImageAction.crop:
+        updated_photo = await controller.crop_photo(photo_id,user.id, x, y)
+    elif action == ImageAction.mirror:
+        updated_photo = await controller.mirror_photo(photo_id,user.id)
+    elif action == ImageAction.rotate:
+        updated_photo = await controller.rotate_photo(photo_id,user.id, x)
+    elif action == ImageAction.scale:
+        updated_photo = await controller.scale_photo(photo_id,user.id, x, y)
+    else:
+        raise HTTPException(status_code=400, detail="Invalid action")
+
+    if not updated_photo:
+        raise HTTPException(status_code=404, detail="Photo not found or not allowed to edit")
+    return updated_photo
