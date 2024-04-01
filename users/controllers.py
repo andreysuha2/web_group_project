@@ -61,9 +61,6 @@ class UsersController:
             user_to_update.role = new_role.upper()
             db.commit()
             return user_to_update
-        else:
-            print("---------------------========zsdxfcgh=======------------errrrrooooorrrr")
-            return user_to_update
             
 
     def ban(self,db: DBConnectionDep, user_id: int) -> User:

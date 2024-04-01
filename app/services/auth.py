@@ -97,7 +97,7 @@ class Auth:
             return False
         return True
     
-    async def role_in(self, roles: List[str]):
+    def role_in(self, roles: List[str]):
         async def checker(token: str = Depends(self.oauth2_scheme)):
             payload = await self.token.decode_access(token)
             if payload.get('role', None) not in roles or redis_client.get(f"{settings.token.BLACK_LIST_PREFIX}{token}") == "1":
