@@ -1,13 +1,13 @@
-from email import message
-from fastapi import APIRouter, status, Depends, HTTPException, Security, BackgroundTasks, Request, UploadFile, File, Response
-from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
+
 from sqlalchemy import or_
-from app.services.auth import auth, AuthDep
-from fastapi.responses import FileResponse
-from users import schemas
-from users.models import UserRoles, User
 from typing import Annotated, List
+from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import APIRouter, status, Depends, HTTPException, Security, BackgroundTasks, Request
+
+from users import schemas
 from app.db import DBConnectionDep
+from users.models import UserRoles, User
+from app.services.auth import auth, AuthDep
 from users.controllers import SessionController, UsersController, ProfileController
 
 
@@ -21,6 +21,7 @@ ProfileControllerDep = Annotated[ProfileController, Depends(ProfileController)]
 session_router = APIRouter(prefix="/session", tags=['session'])
 user_router = APIRouter(prefix="/users", tags=['users'])
 profile_router = APIRouter(prefix="/profile", tags=['profile'])
+
 
 @session_router.post('/', response_model=schemas.TokenLoginResponse)
 async def login(db: DBConnectionDep, body:OAuth2PasswordRequestForm=Depends()):
@@ -69,35 +70,29 @@ async def read_user_by_name_or_id(user_name: str|int, db: DBConnectionDep, user:
     return controller.get_user_by_name(user_name=user_name, db=db)
 
 
-@user_router.patch("/{user_id}/role", response_model=schemas.UserResponse|None, status_code=status.HTTP_200_OK)
+@user_router.patch("/{user_id}/role", response_model=schemas.UserResponse|None, dependencies=[Depends(auth.role_not_in(UserRoles.USER.value))])
 async def update_role(db: DBConnectionDep, controller: UsersControllerDep, current_user: AuthDep, new_role:str, user_id: int):
     if db.query(User).filter(User.id == user_id).first() is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
     roles = [role.value for role in UserRoles]
     if new_role not in roles:
         raise HTTPException(status_code = status.HTTP_406_NOT_ACCEPTABLE, detail = "Invalid role input")
-    if current_user.role.value == "user":
-        raise HTTPException(status_code = status.HTTP_403_FORBIDDEN)
     if current_user.role.value == "moder" and new_role == "admin":
         raise HTTPException(status_code = status.HTTP_403_FORBIDDEN)
     return controller.update_role(user=current_user, db=db, new_role=new_role, user_id = user_id)
 
 
-@user_router.patch("/{user_id}/ban",  response_model=schemas.UserResponse|None, status_code=status.HTTP_200_OK)
+@user_router.patch("/{user_id}/ban",  response_model=schemas.UserResponse|None, dependencies=[Depends(auth.role_in(UserRoles.ADMIN.value))])
 async def user_ban(db: DBConnectionDep, controller: UsersControllerDep, current_user: AuthDep, user_id: int):
     if db.query(User).filter(User.id == user_id).first() is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
-    if current_user.role.value != "admin":
-        raise HTTPException(status_code = status.HTTP_403_FORBIDDEN)
     return controller.ban(db=db, user_id = user_id)
 
 
-@user_router.patch("/{user_id}/unban", response_model=schemas.UserResponse|None, status_code=status.HTTP_200_OK)
+@user_router.patch("/{user_id}/unban", response_model=schemas.UserResponse|None, dependencies=[Depends(auth.role_in(UserRoles.ADMIN.value,))])
 async def user_unban(db: DBConnectionDep, controller: UsersControllerDep, current_user: AuthDep, user_id: int):
     if db.query(User).filter(User.id == user_id).first() is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
-    if current_user.role.value != "admin":
-        raise HTTPException(status_code = status.HTTP_403_FORBIDDEN)
     return controller.unban(db=db, user_id = user_id)
 
 

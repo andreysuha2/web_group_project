@@ -1,18 +1,23 @@
+from itertools import count
 from typing import List
-from pydantic import Field, BaseModel, EmailStr
 from datetime import datetime
+from pydantic import Field, BaseModel, EmailStr, model_validator  
 from users import models
-from photos.schemas import PhotoModel
+from photos.schemas import PhotoResponse
+from photos.models import Photo
+
 
 class UserCreationModel(BaseModel):
     username: str = Field(min_length=5, max_length=20, example="username")
     email: EmailStr
     password: str = Field(min_length=6)
 
+
 class UserModel(BaseModel):
     username: str
     email: EmailStr
     created_at: datetime
+
 
 class UserProfileModel(BaseModel):
     email: EmailStr
@@ -28,7 +33,15 @@ class UserResponse(UserModel):
 
 
 class UserSelfModel(UserResponse):
-    photos: List[PhotoModel]
+    photos: List[PhotoResponse]
+    # photos_count: int = Field(...)
+
+    # def count_photos(self):
+    #     return len(self.photos)
+
+    # class Config:
+    #     orm_mode = True
+
 
 
 class TokenPairModel(BaseModel):
@@ -44,9 +57,11 @@ class TokenLoginResponse(BaseModel):
     refresh_expired_at: datetime
     token_type: str
 
+
 class TokenModel(BaseModel):
     access_token: dict
     expired_at: datetime
+
 
 class RequestEmail(BaseModel):
     email: EmailStr
