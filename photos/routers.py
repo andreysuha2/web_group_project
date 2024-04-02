@@ -144,14 +144,14 @@ async def admin_update_photo_description(photo_id: int,
 @photos_router.post("/admin/{user_id}", response_model=schemas.PhotoResponse,
                     dependencies=[Depends(auth.role_not_in(UserRoles.USER.value))])
 async def admin_upload_photo(
-        user: AuthDep,
-        db: DBConnectionDep,
-        user_id: int,
-        title: str = Form(),
-        description: str = Form(None),
-        tags: str = Form(None),
-        file: UploadFile = File(),
-        ):
+                            user: AuthDep,
+                            db: DBConnectionDep,
+                            user_id: int,
+                            title: str = Form(),
+                            description: str = Form(None),
+                            tags: str = Form(None),
+                            file: UploadFile = File(),
+                            ):
     logging.info("admin_upload_photo start")
     controller = PhotosController(db)
     tag_models = []
@@ -176,13 +176,14 @@ async def admin_upload_photo(
     return photo_response
 
 
-@photos_router.put("/react/{photo_id}", status_code=200)
-async def update_photo_description(
+@photos_router.put("/redact/{photo_id}", status_code=200)
+async def update_photo(
                         photo_id: int,
                         user: AuthDep,
                         db: DBConnectionDep,
-                        x: int,
-                        y: int,
+
+                        x: int = 0,
+                        y: int = 0,
                         action: ImageAction = Query(..., description="Виберіть дію, яку потрібно виконати з зображенням:"),
 
                         ):

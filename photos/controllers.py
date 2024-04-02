@@ -133,5 +133,5 @@ class PhotosController:
 def extract_public_id_from_url(url):
 
     parts = url.split('/')
-    public_id = parts[-2] + '/' + parts[-1].split('.')[0]
+    public_id = parts[-2] + '/' + parts[-1].split(".")[0]
     return public_id
