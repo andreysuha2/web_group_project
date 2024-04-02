@@ -1,8 +1,6 @@
 from app.db import Base, TimestampsMixin
-from app.settings import settings
 from sqlalchemy import Integer, String, ForeignKey, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.ext.hybrid import hybrid_property
 from typing import List, TYPE_CHECKING
 if TYPE_CHECKING:
     from users.models import User
@@ -27,9 +25,6 @@ class Photo(Base, TimestampsMixin):
     tags: Mapped[List["Tag"]] = relationship(back_populates="photos", secondary=photo_tag_table)
     comments: Mapped[List["Comment"]] = relationship(back_populates="photo", cascade="all, delete-orphan")
 
-    @hybrid_property
-    def storage_path(self):
-        return f"{settings.app.STORAGE_FOLDER}/{self.user.id}/{self.name}"
     
 class Tag(Base):
     __tablename__ = "tags"

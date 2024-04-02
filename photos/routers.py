@@ -2,7 +2,7 @@ import logging
 from app.settings import settings
 from fastapi import APIRouter, Depends, UploadFile, File, Form, Query
 from app.db import DBConnectionDep
-from typing import Annotated, List
+from typing import Annotated
 from photos import schemas, models
 from photos.controllers import PhotosController
 from photos.Cloudinary_controller import CloudinaryController, ImageAction
@@ -87,7 +87,7 @@ async def get_photo(
         raise HTTPException(status_code=404, detail="Photo not found")
 
     try:
-        file_path = photo.storage_path
+        file_path = photo.name
         return file_path
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading photo: {e}")
