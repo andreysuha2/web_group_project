@@ -3,8 +3,6 @@ from typing import List
 from datetime import datetime
 from pydantic import Field, BaseModel, EmailStr, model_validator  
 from users import models
-from photos.schemas import PhotoResponse
-from photos.models import Photo
 
 
 class UserCreationModel(BaseModel):
@@ -33,15 +31,8 @@ class UserResponse(UserModel):
 
 
 class UserSelfModel(UserResponse):
-    photos: List[PhotoResponse]
-    # photos_count: int = Field(...)
-
-    # def count_photos(self):
-    #     return len(self.photos)
-
-    # class Config:
-    #     orm_mode = True
-
+    # photos: List[PhotoResponse]
+    photos_count: int
 
 
 class TokenPairModel(BaseModel):

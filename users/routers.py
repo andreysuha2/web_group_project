@@ -5,6 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredent
 from fastapi import APIRouter, status, Depends, HTTPException, Security, BackgroundTasks, Request
 
 from users import schemas
+from photos.models import Photo
 from app.db import DBConnectionDep
 from users.models import UserRoles, User
 from app.services.auth import auth, AuthDep
@@ -58,16 +59,21 @@ async def users_list(controller: UsersControllerDep, db: DBConnectionDep, user: 
 
 @user_router.get("/{username_or_id}", response_model=schemas.UserSelfModel|None, status_code=status.HTTP_200_OK)
 async def read_user_by_name_or_id(user_name: str|int, db: DBConnectionDep, user: AuthDep,  controller: UsersControllerDep):
+    result = None
     try:
         user_id = int(user_name)
         if controller.get_user_by_id(user_id=user_id, db=db) is None:
             raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
-        return controller.get_user_by_id(user_id=user_id, db=db)
+        result =  controller.get_user_by_id(user_id=user_id, db=db)
     except:
         pass
-    if controller.get_user_by_name(user_name=user_name, db=db) is None:
-        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
-    return controller.get_user_by_name(user_name=user_name, db=db)
+    if result is None:
+        if controller.get_user_by_name(user_name=user_name, db=db) is None:
+            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
+        result =  controller.get_user_by_name(user_name=user_name, db=db)
+    photos_count = db.query(Photo).filter(Photo.user_id == result.id).count()
+    result.photos_count = photos_count
+    return result
 
 
 @user_router.patch("/{user_id}/role", response_model=schemas.UserResponse|None, dependencies=[Depends(auth.role_not_in(UserRoles.USER.value))])
