@@ -31,3 +31,6 @@ archive.zip
 .DS_Store
 users.csv
 redisinsight
+
+*_app_storage/
+*_db_storage/

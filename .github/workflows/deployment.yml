@@ -1,0 +1,23 @@
+name: Photoshopper
+run-name: ${{ github.actor }} start deployment 🚀
+on:
+    push:
+        branches:
+            - develop
+    pull_request:
+        branches:
+            - develop
+jobs:
+    deploy_development:
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        if: github.ref == 'refs/heads/develop'
+        steps:
+            - name: connect to server
+              uses: appleboy/ssh-action@v0.1.10
+              with:
+                host: ${{ secrets.SSH_HOST }}
+                username: ${{ secrets.SSH_USER }}
+                key: ${{ secrets.SSH_KEY }}
+                script: bash ~/photoshopper/build.sh development
+        

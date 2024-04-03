@@ -29,7 +29,7 @@ def create_users(count: int) -> List[dict]:
 
 def upload_users(db: Session, users: List[dict]) -> None:
     header = ['email', 'password', 'role']
-    with open(f"{settings.app.ROOT_DIR}/users.csv", 'w') as f:
+    with open(f"{settings.app.STORAGE_FOLDER}/users.csv", 'w') as f:
         writer = csv.writer(f)
         writer.writerow(header)
         for user_data in users:

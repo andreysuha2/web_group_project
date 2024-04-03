@@ -3,10 +3,12 @@ import dotenv
 import typer
 import shutil
 from pathlib import Path
-from users.seed import main as users_seed
-from photos.seed import main as photos_seed
-from comments.seed import main as comments_seed
 try:
+    from users.seed import main as users_seed
+    from photos.seed import main as photos_seed
+    from comments.seed import main as comments_seed
+    from app.db import get_db
+    from users.models import User
     from app.settings import settings
 except TypeError:
     settings = None
@@ -15,12 +17,14 @@ app = typer.Typer()
 
 @app.command()
 def seed():
-    users_seed()
-    photos_seed()
-    comments_seed()
+    db = next(get_db())
+    if settings and settings.app.ENV != "production" and not db.query(User.id).count():
+        users_seed()
+        photos_seed()
+        comments_seed()
 
 @app.command()
-def initenv(env: str = 'development'):
+def initenv(env: str = 'local'):
     ROOT_PATH = Path(__file__).parent.parent
     ENV_PATH = f"{ROOT_PATH}/.env"
     ENV_EXAMPLE_PATH = f"{ROOT_PATH}/.env.example"
