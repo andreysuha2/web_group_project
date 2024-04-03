@@ -9,6 +9,8 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "${DB_PORT}:5432"
+    volumes:
+      - ./${APP_ENV}_db_storage:/var/lib/postgresql/data
   redis-stack:
     image: redis/redis-stack
     container_name: web_group_project_redis
@@ -22,6 +24,8 @@ services:
     container_name: web_group_project_app
     ports:
       - "${APP_PORT}:${APP_PORT}"
+    volumes:
+      - ./${APP_ENV}_app_storage:/app
     develop:
       watch:
         - action: sync
