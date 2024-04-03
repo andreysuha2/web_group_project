@@ -1,8 +1,17 @@
-from itertools import count
-from typing import List
+
 from datetime import datetime
-from pydantic import Field, BaseModel, EmailStr, model_validator  
+from typing import List, Optional
+from pydantic import Field, BaseModel, EmailStr 
+
 from users import models
+
+
+# for users_photos response
+class PhotoResponse(BaseModel):
+    id: int
+    name: str
+    title: str
+    description: Optional[str]
 
 
 class UserCreationModel(BaseModel):
@@ -30,8 +39,14 @@ class UserResponse(UserModel):
         from_attributes = True
 
 
+class UserSelfPhotos(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    photos: List[PhotoResponse] 
+
+
 class UserSelfModel(UserResponse):
-    # photos: List[PhotoResponse]
     photos_count: int
 
 
@@ -57,4 +72,3 @@ class TokenModel(BaseModel):
 class RequestEmail(BaseModel):
     email: EmailStr
 
-    
