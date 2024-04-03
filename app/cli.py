@@ -24,7 +24,7 @@ def seed():
         comments_seed()
 
 @app.command()
-def initenv(env: str = 'development'):
+def initenv(env: str = 'local'):
     ROOT_PATH = Path(__file__).parent.parent
     ENV_PATH = f"{ROOT_PATH}/.env"
     ENV_EXAMPLE_PATH = f"{ROOT_PATH}/.env.example"

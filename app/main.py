@@ -28,7 +28,7 @@ def status(db: DBConnectionDep):
 [app.include_router(router, prefix=settings.app.BASE_URL_PREFIX) for router in routers]
 
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host=settings.app.HOST, port=settings.app.PORT, reload=settings.app.ENV == "development")
+    uvicorn.run("app.main:app", host=settings.app.HOST, port=settings.app.PORT, reload=settings.app.ENV == "local")
 
 
 
