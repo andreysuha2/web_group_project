@@ -6,7 +6,6 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from app.settings import settings
-from photos.controllers import extract_public_id_from_url
 from fastapi import HTTPException
 
 
