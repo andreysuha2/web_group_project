@@ -14,7 +14,25 @@ fake_data: faker.Faker = faker.Faker()
 
 COUNT_PHOTOS = 200
 COUNT_TAGS = 500
-PHOTOS_EXTS = ['jpg', 'png', 'jpeg', 'webp']
+PHOTOS_LIST = [ 
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1711960798/21/m9fkhh3liez1llnsimdr.jpg',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1711978586/21/hsgkvmuwpytf3paiqiy4.jpg',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712074526/21/hii4ghshznktmkw6gmrw.jpg',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712074588/21/pmvy16s0ujwbizhjiyv9.jpg',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1711960798/21/m9fkhh3liez1llnsimdr.jpg',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712075184/21/qlnhsk6vkekxpmui6o39.jpg',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712075282/21/vbgrny2yentrhk8gmzho.jpg',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712075586/21/iveje8y9ucgnizkxbh0p.png',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712075617/21/wenyr6lzoutrkwapk8wx.png',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712075650/21/kvxeuv2hisl5wngisahd.png',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712075666/21/arzvpmyeockmxqtjthqo.png',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712075701/21/xrn3jyxvjphvuihdxjsr.png',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712078593/21/sfrhpvdktwgvlbllvlok.jpg',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712079416/21/ifz5d3zyz3y3fmgbwhxl.jpg',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712079423/21/gs3q07xrfmdjvrat5b5w.jpg',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712079433/21/dohj0fytwccjzf5a2czw.jpg',
+    'http://res.cloudinary.com/dxle4i1vi/image/upload/v1712079447/21/hbkb8ie50mwb490e0qna.jpg'
+    ]
 
 def create_tags(count: int) -> List[dict]:
     tags = []
@@ -46,7 +64,7 @@ def create_photos(count: int) -> List[dict]:
         if bool(getrandbits(1)):
             description = fake_data.paragraph(nb_sentences=1)
         photos.append({
-            "name": f"{''.join(choices(string.ascii_uppercase + string.digits, k=10))}.{choice(PHOTOS_EXTS)}",
+            "name": choice(PHOTOS_LIST),
             "title": fake_data.word(),
             "description": description
         })
