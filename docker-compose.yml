@@ -25,7 +25,7 @@ services:
     ports:
       - "${APP_PORT}:${APP_PORT}"
     volumes:
-      - ./${APP_ENV}_app_storage:/app
+      - ./${APP_ENV}_app_storage:/photoshopper/app/files-storage
     develop:
       watch:
         - action: sync
