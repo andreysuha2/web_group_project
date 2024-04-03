@@ -7,6 +7,8 @@ try:
     from users.seed import main as users_seed
     from photos.seed import main as photos_seed
     from comments.seed import main as comments_seed
+    from app.db import get_db
+    from users.models import User
     from app.settings import settings
 except TypeError:
     settings = None
@@ -15,9 +17,11 @@ app = typer.Typer()
 
 @app.command()
 def seed():
-    users_seed()
-    photos_seed()
-    comments_seed()
+    db = next(get_db())
+    if settings and settings.app.ENV != "production" and not db.query(User.id).count():
+        users_seed()
+        photos_seed()
+        comments_seed()
 
 @app.command()
 def initenv(env: str = 'development'):
