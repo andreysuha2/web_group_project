@@ -1,17 +1,20 @@
-from app.db import Base, TimestampsMixin
 from enum import Enum
-from sqlalchemy import Integer, String, ForeignKey, Enum as SQLEnum, DateTime, Column
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import List, TYPE_CHECKING
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Integer, String, ForeignKey, Enum as SQLEnum, DateTime, Column
+
+from app.db import Base, TimestampsMixin
 if TYPE_CHECKING:
     from photos.models import Photo
     from comments.models import Comment
+
 
 class UserRoles(Enum):
     ADMIN = "admin"
     MODER = "moder"
     USER = "user"
+
 
 class User(Base, TimestampsMixin):
     __tablename__ = "users"
@@ -19,12 +22,11 @@ class User(Base, TimestampsMixin):
     email: Mapped[str] = mapped_column(String(50), unique=True)
     username: Mapped[str] = mapped_column(String(50), unique=True)
     password: Mapped[str] = mapped_column(String(200))
-    # role: Mapped[UserRoles] = mapped_column(SQLEnum(name="user_role_enum"), default=UserRoles.USER.value)
     role = Column(SQLEnum(UserRoles), default=UserRoles.USER)
     tokens: Mapped[List["Token"]] = relationship(back_populates="user")
     photos: Mapped[List["Photo"]] = relationship(back_populates="user")
     comments: Mapped[List["Comment"]] = relationship(back_populates="user")
-    banned: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
+    banned: Mapped[datetime] = mapped_column(DateTime, default=None, nullable=True)
 
 
 class Token(Base):
@@ -34,3 +36,5 @@ class Token(Base):
     expired_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     user: Mapped["User"] = relationship(back_populates="tokens")
+
+    

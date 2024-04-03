@@ -1,16 +1,13 @@
-from email import message
-from sqlalchemy import select
-from fastapi import  status
-from typing import List, Optional
-from users.models import User
-from users.models import UserRoles
-from sqlalchemy.orm import Session
-from users import schemas
-from datetime import datetime
-from app.db import DBConnectionDep
-from datetime import datetime
-from app.services import auth
 
+from sqlalchemy import select
+from datetime import datetime
+from typing import List, Optional
+from sqlalchemy.orm import Session
+
+from users import schemas
+from app.services import auth
+from app.db import DBConnectionDep
+from users.models import UserRoles, User
 
 
 class SessionController:
@@ -25,12 +22,10 @@ class SessionController:
         db.commit()
     
     async def create(self, body: schemas.UserCreationModel, db: Session) -> base_model:
-        user_role = UserRoles.USER
-        if empty_db:
-            user = self.base_model(**body.model_dump(), role=user_role)
+        if db.query(self.base_model).count() == 0:
+            user = self.base_model(**body.model_dump(), role=UserRoles.ADMIN)
         else:
-            user = self.base_model(**body.model_dump())
-        # print("========================================" , user.email, user.username)
+            user = self.base_model(**body.model_dump()) 
         db.add(user)
         db.commit()
         db.refresh(user)
@@ -47,6 +42,10 @@ class UsersController:
         return db.query(self.base_model).filter(self.base_model.id == user_id).first()
 
 
+    def get_user_by_name(self, user_name: str, db: DBConnectionDep) -> User | None:
+        return db.query(self.base_model).filter(self.base_model.username == user_name).first()
+
+
     def update_role(self, user: User, db: DBConnectionDep, new_role: str, user_id: int) -> User:
         user_to_update = db.query(self.base_model).filter(self.base_model.id == user_id).first()
         if user_to_update is None:
@@ -58,9 +57,6 @@ class UsersController:
         if user.role.value == "moder" and new_role != "admin":
             user_to_update.role = new_role.upper()
             db.commit()
-            return user_to_update
-        else:
-            print("---------------------========zsdxfcgh=======------------errrrrooooorrrr")
             return user_to_update
             
 

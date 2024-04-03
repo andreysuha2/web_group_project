@@ -51,7 +51,6 @@ class Token:
         return { "token": token, "expired_at": expired, "scope": scope.value }
     
     async def decode(self, token: str, scope: TokenScopes) -> dict:
-        print("token", token)
         try:
             payload = self.coder.decode(token, self.secret, algorithms=[self.config.ALGORITHM])
             if payload['scope'] == scope.value:
@@ -98,7 +97,7 @@ class Auth:
             return False
         return True
     
-    async def role_in(self, roles: List[str]):
+    def role_in(self, roles: List[str]):
         async def checker(token: str = Depends(self.oauth2_scheme)):
             payload = await self.token.decode_access(token)
             if payload.get('role', None) not in roles or redis_client.get(f"{settings.token.BLACK_LIST_PREFIX}{token}") == "1":
