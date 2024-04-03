@@ -112,3 +112,18 @@ async def modify_self_user(db: DBConnectionDep, controller: ProfileControllerDep
     return controller.update_profile(user=current_user, db=db, body=body)
 
 
+@user_router.get("/{username_or_id}/photos", response_model=schemas.UserSelfPhotos|None, status_code=status.HTTP_200_OK)
+async def read_user_photos(user_name: str|int, db: DBConnectionDep, user: AuthDep,  controller: UsersControllerDep):
+    result = None
+    try:
+        user_id = int(user_name)
+        if controller.get_user_by_id(user_id=user_id, db=db) is None:
+            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
+        result =  controller.get_user_by_id(user_id=user_id, db=db)
+    except:
+        pass
+    if result is None:
+        if controller.get_user_by_name(user_name=user_name, db=db) is None:
+            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
+        result =  controller.get_user_by_name(user_name=user_name, db=db)
+    return result
