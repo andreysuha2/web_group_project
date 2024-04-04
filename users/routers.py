@@ -58,19 +58,19 @@ async def users_list(controller: UsersControllerDep, db: DBConnectionDep, user: 
 
 
 @user_router.get("/{username_or_id}", response_model=schemas.UserSelfModel|None, status_code=status.HTTP_200_OK)
-async def read_user_by_name_or_id(user_name: str|int, db: DBConnectionDep, user: AuthDep,  controller: UsersControllerDep):
+async def read_user_by_name_or_id(user_name_or_id: str|int, db: DBConnectionDep, user: AuthDep,  controller: UsersControllerDep):
     result = None
     try:
-        user_id = int(user_name)
+        user_id = int(user_name_or_id)
         if controller.get_user_by_id(user_id=user_id, db=db) is None:
             raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
         result =  controller.get_user_by_id(user_id=user_id, db=db)
     except:
         pass
     if result is None:
-        if controller.get_user_by_name(user_name=user_name, db=db) is None:
+        if controller.get_user_by_name(user_name=user_name_or_id, db=db) is None:
             raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
-        result =  controller.get_user_by_name(user_name=user_name, db=db)
+        result =  controller.get_user_by_name(user_name=user_name_or_id, db=db)
     photos_count = db.query(Photo).filter(Photo.user_id == result.id).count()
     result.photos_count = photos_count
     return result
@@ -113,17 +113,17 @@ async def modify_self_user(db: DBConnectionDep, controller: ProfileControllerDep
 
 
 @user_router.get("/{username_or_id}/photos", response_model=schemas.UserSelfPhotos|None, status_code=status.HTTP_200_OK)
-async def read_user_photos(user_name: str|int, db: DBConnectionDep, user: AuthDep,  controller: UsersControllerDep):
+async def read_user_photos(user_name_or_id: str|int, db: DBConnectionDep, user: AuthDep,  controller: UsersControllerDep):
     result = None
     try:
-        user_id = int(user_name)
+        user_id = int(user_name_or_id)
         if controller.get_user_by_id(user_id=user_id, db=db) is None:
             raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
         result =  controller.get_user_by_id(user_id=user_id, db=db)
     except:
         pass
     if result is None:
-        if controller.get_user_by_name(user_name=user_name, db=db) is None:
+        if controller.get_user_by_name(user_name=user_name_or_id, db=db) is None:
             raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "User not found")
-        result =  controller.get_user_by_name(user_name=user_name, db=db)
+        result =  controller.get_user_by_name(user_name=user_name_or_id, db=db)
     return result
