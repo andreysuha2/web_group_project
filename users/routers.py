@@ -57,7 +57,7 @@ async def users_list(controller: UsersControllerDep, db: DBConnectionDep, user: 
     return controller.get_users(db)
 
 
-@user_router.get("/{username_or_id}", response_model=schemas.UserSelfModel|None, status_code=status.HTTP_200_OK)
+@user_router.get("/{user_name_or_id}", response_model=schemas.UserSelfModel|None, status_code=status.HTTP_200_OK)
 async def read_user_by_name_or_id(user_name_or_id: str|int, db: DBConnectionDep, user: AuthDep,  controller: UsersControllerDep):
     result = None
     try:
@@ -112,7 +112,7 @@ async def modify_self_user(db: DBConnectionDep, controller: ProfileControllerDep
     return controller.update_profile(user=current_user, db=db, body=body)
 
 
-@user_router.get("/{username_or_id}/photos", response_model=schemas.UserSelfPhotos|None, status_code=status.HTTP_200_OK)
+@user_router.get("/{user_name_or_id}/photos", response_model=schemas.UserSelfPhotos|None, status_code=status.HTTP_200_OK)
 async def read_user_photos(user_name_or_id: str|int, db: DBConnectionDep, user: AuthDep,  controller: UsersControllerDep):
     result = None
     try:
