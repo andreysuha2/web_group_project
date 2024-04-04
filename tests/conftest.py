@@ -37,7 +37,7 @@ def client(session: Session):
     def override_auth():
         user = session.query(User).filter(User.id == 1).first()
         if user is None:
-            user = User(username="Thanos", email="thanos@stones.five", password=auth.password.hash("123123123"))
+            user = User(username="Thanos", email="thanos@stones.com", password=auth.password.hash("sc123123123"))
             session.add(user)
             session.commit()
             session.refresh(user)
@@ -57,5 +57,14 @@ def photo():
         "description": "A test photo",
         "tags": "#test #photo"
     }
+
+
+@pytest.fixture(scope="module")
+def user():
+    return {
+            "username": "username",
+            "email": "user@example.com",
+            "password": "string"
+            }
 
 
