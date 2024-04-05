@@ -1,6 +1,7 @@
 from pydantic import BaseModel, field_validator, Field
 from typing import List, Optional
 import re
+from fastapi import HTTPException
 
 
 class TagModel(BaseModel):
@@ -11,7 +12,7 @@ class TagModel(BaseModel):
         if value:
             pattern = r'^#[^\s]+$'
             if not re.match(pattern, value):
-                raise ValueError('Tag must start with a # and contain no spaces')
+                raise HTTPException(status_code=422, detail=r"Tag must start from # and has no spaces")
             return value
 
 

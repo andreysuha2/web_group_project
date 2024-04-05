@@ -38,6 +38,7 @@ def client(session: Session):
         user = session.query(User).filter(User.id == 1).first()
         if user is None:
             user = User(username="Thanos", email="thanos@stones.com", password=auth.password.hash("sc123123123"))
+            user = User(username="Thanos", email="thanos@stones.five", password=auth.password.hash("123123123"), role="ADMIN")
             session.add(user)
             session.commit()
             session.refresh(user)
@@ -58,7 +59,6 @@ def photo():
         "tags": "#test #photo"
     }
 
-
 @pytest.fixture(scope="module")
 def user():
     return {
@@ -67,4 +67,10 @@ def user():
             "password": "string"
             }
 
-
+@pytest.fixture(scope="module")
+def photo_wrong_tag():
+    return {
+        "title": "Test Photo",
+        "description": "A test photo",
+        "tags": "test photo"
+    }

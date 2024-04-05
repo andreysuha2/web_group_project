@@ -90,7 +90,7 @@ class PhotosController:
                         if not tag:
                             tag = Tag(name=tag_data.name)
                             self.db.add(tag)
-                            self.db.flush()
+
                         new_photo.tags.append(tag)
 
             self.db.commit()
